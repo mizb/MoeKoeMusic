@@ -238,36 +238,49 @@ const updateCurrentTime = throttle(() => {
     }
 
     const savedConfig = JSON.parse(localStorage.getItem('settings') || '{}');
-    if (audio && (lyricsData.value.length || isLyrics === false)) {
+    const hasLyricsData = Array.isArray(lyricsData.value) && lyricsData.value.length > 0;
+
+    if (audio) {
         if (savedConfig?.lyricsAlign != lyricsAlign.value) lyricsAlign.value = savedConfig.lyricsAlign;
 
-        highlightCurrentChar(audio.currentTime, !lyricsFlag.value);
+        if (hasLyricsData) {
+            highlightCurrentChar(audio.currentTime, !lyricsFlag.value);
+        }
+
         if (isElectron()) {
+            const desktopLyricsSource = hasLyricsData ? lyricsData.value : [];
+            const desktopLyricsPayload = JSON.parse(JSON.stringify(desktopLyricsSource));
+            const serverLyricsSource = hasLyricsData && originalLyrics.value ? originalLyrics.value : [];
+            const serverLyricsPayload = JSON.parse(JSON.stringify(serverLyricsSource));
+            const currentSongPayload = JSON.parse(JSON.stringify(currentSong.value ?? null));
+
             if (savedConfig?.desktopLyrics === 'on') {
                 window.electron.ipcRenderer.send('lyrics-data', {
                     currentTime: audio.currentTime,
-                    lyricsData: JSON.parse(JSON.stringify(lyricsData.value)),
-                    currentSongHash: currentSong.value.hash
+                    lyricsData: desktopLyricsPayload,
+                    currentSongHash: currentSong.value?.hash || ''
                 });
             }
             if (savedConfig?.apiMode === 'on') {
                 window.electron.ipcRenderer.send('server-lyrics', {
                     currentTime: audio.currentTime,
-                    lyricsData: JSON.parse(JSON.stringify(originalLyrics.value)),
-                    currentSong: JSON.parse(JSON.stringify(currentSong.value)),
+                    lyricsData: serverLyricsPayload,
+                    currentSong: currentSongPayload,
                     duration: audio.duration
                 });
             }
             if (window.electron.platform == 'darwin' && savedConfig?.touchBar == 'on') {
-                const currentLine = getCurrentLineText(audio.currentTime);
+                const currentLine = hasLyricsData ? getCurrentLineText(audio.currentTime) : '';
                 window.electron.ipcRenderer.send(
                     "update-current-lyrics",
                     currentLine
                 );
             }
         }
-    } else if (isElectron() && (savedConfig?.desktopLyrics === 'on' || savedConfig?.apiMode === 'on')) {
-        if(isLyrics === false) return;
+    }
+
+    if (!hasLyricsData && isElectron() && (savedConfig?.desktopLyrics === 'on' || savedConfig?.apiMode === 'on')) {
+        if (isLyrics === false) return;
         getCurrentLyrics();
     }
 
