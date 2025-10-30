@@ -515,7 +515,7 @@ html {
     height: auto;
     transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
     transform: translateZ(0); 
-    margin: 8px; /* 移出事件和窗口缩放冲突，暂未解决 */
+    /* margin: 8px; 移出事件和窗口缩放冲突，暂未解决 */
     padding: 8px 0;
     overflow: hidden;
 }
