@@ -32,3 +32,4 @@ jobs:
           context: .
           push: true
           platforms: linux/arm64
+          tags: mimimimimimimiiii/kukugo:latest
