@@ -999,7 +999,9 @@ const recordShortcut = (e) => {
         '-': 'numsub',
         '*': 'nummult',
         '/': 'numdiv',
-        '=': 'Equal'
+        '=': 'Equal',
+        '.': 'Dot',
+        'NumpadDecimal': 'numdec'
     };
 
     const key = specialKeys[e.key] || e.key.toUpperCase();
