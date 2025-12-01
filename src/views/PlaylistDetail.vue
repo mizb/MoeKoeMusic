@@ -436,7 +436,7 @@ const fetchPlaylistTracks = async () => {
             });
             
             if (response.status === 1) {
-                if (response.data.info.length > 0) {
+                if (response.data.songs.length > 0) {
                     const formattedTracks = response.data.songs
                     .filter(track => !!track.hash)
                     .map(track => {
@@ -462,7 +462,7 @@ const fetchPlaylistTracks = async () => {
                     allTracks = allTracks.concat(formattedTracks);
                     currentPage++;
                 }
-                if (response.data.info.length < pageSize.value) break;
+                if (response.data.songs.length < pageSize.value) break;
             } else {
                 break;
             }
