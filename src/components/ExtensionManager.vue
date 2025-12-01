@@ -196,7 +196,9 @@ const isElectron = () => {
 };
 
 onMounted(() => {
-    refreshExtensions()
+    if(isElectron()){
+        refreshExtensions()
+    }
 })
 </script>
 
