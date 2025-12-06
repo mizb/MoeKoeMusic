@@ -265,7 +265,8 @@ const loadData = async () => {
         getArtistInfo();
         fetchArtistSongs();
     } else {
-        getPlaylistDetail();
+        updateFavoriteStatus();
+        await fetchPlaylistTracks();
     }
 };
 
@@ -283,22 +284,6 @@ const getArtistInfo = async () => {
         }
     } catch (error) {
         console.error('获取歌手信息失败:', error);
-    }
-};
-
-// 获取歌单信息
-const getPlaylistDetail = async () => {
-    try {
-        const response = await get('/playlist/detail', { 
-            ids: route.query.global_collection_id 
-        });
-        if (response.status === 1) {
-            detail.value = response.data[0];
-            updateFavoriteStatus();
-            await fetchPlaylistTracks();
-        }
-    } catch (error) {
-        console.error('获取歌单信息失败:', error);
     }
 };
 
@@ -397,7 +382,8 @@ const fetchPlaylistTracks = async () => {
         });
         
         if (firstPageResponse.status === 1) {
-            const formattedTracks = firstPageResponse.data.songs
+            detail.value = firstPageResponse.data?.list_info;
+            const formattedTracks = firstPageResponse.data?.songs
             .filter(track => !!track.hash)
             .map(track => {
                 const nameParts = track.name.split(' - ');
@@ -907,11 +893,11 @@ const changeArtistSort = (sortType) => {
 .fav-btn,
 .more-btn {
     background-color: transparent;
-    border: 1px solid #ccc;
     padding: 10px;
     border-radius: 5px;
     cursor: pointer;
     border: 1px solid var(--secondary-color);
+    height: 100%;
 }
 
 .fav-btn i {
