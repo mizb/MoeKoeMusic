@@ -1,6 +1,6 @@
 {
   "name": "moekoemusic",
-  "version": "1.5.3",
+  "version": "1.5.4",
   "homepage": "https://github.com/iAJue/MoeKoeMusic",
   "main": "electron/main.js",
   "scripts": {
@@ -10,7 +10,7 @@
     "build:docker": "cross-env VITE_APP_API_URL=/api vite build",
     "preview": "vite preview",
     "electron:serve": "cross-env NODE_ENV=development electron .",
-    "api": "node api/app.js",
+    "api": "node api/app.js --platform=lite",
     "dev": "npm run api & npm run serve & npm run electron:serve",
     "build:api:win": "npm run --prefix ./api pkgwin",
     "build:api:linux": "npm run --prefix ./api pkglinux",

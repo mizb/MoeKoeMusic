@@ -57,7 +57,7 @@ export default function useSongQueue(t, musicQueueStore) {
 
             // 设置URL
             if (response.url && response.url[0]) {
-                currentSong.value.url = response.url[0].replace('http://', 'https://');
+                currentSong.value.url = response.url[0];
                 console.log('[SongQueue] 获取到音乐URL:', currentSong.value.url);
             } else {
                 console.error('[SongQueue] 未获取到音乐URL');
@@ -70,10 +70,10 @@ export default function useSongQueue(t, musicQueueStore) {
                 id: musicQueueStore.queue.length + 1,
                 hash: hash,
                 name: name,
-                img: img.replace('http://', 'https://'),
+                img: img,
                 author: author,
                 timeLength: response.timeLength,
-                url: response.url[0].replace('http://', 'https://')
+                url: response.url[0]
             };
 
             // 根据是否需要重置播放位置
@@ -100,6 +100,10 @@ export default function useSongQueue(t, musicQueueStore) {
         } catch (error) {
             console.error('[SongQueue] 获取音乐地址出错:', error);
             currentSong.value.author = currentSong.value.name = t('huo-qu-yin-le-di-zhi-shi-bai');
+            if (error.response?.data?.status == 2) {
+                window.$modal.alert(t('deng-lu-shi-xiao-qing-zhong-xin-deng-lu'));
+                return { error: true};
+            }
             if (musicQueueStore.queue.length === 0) return { error: true };
             currentSong.value.author = t('3-miao-hou-zi-dong-qie-huan-xia-yi-shou');
 
@@ -201,7 +205,7 @@ export default function useSongQueue(t, musicQueueStore) {
             id: musicQueueStore.queue.length + 1,
             hash: hash,
             name: name,
-            img: img.replace('http://', 'https://'),
+            img: img,
             author: author,
             timeLength: timeLength,
         });
@@ -210,7 +214,7 @@ export default function useSongQueue(t, musicQueueStore) {
             id: musicQueueStore.queue.length + 1,
             hash: hash,
             name: name,
-            img: img.replace('http://', 'https://'),
+            img: img,
             author: author,
             timeLength: timeLength,
         });
@@ -253,7 +257,7 @@ export default function useSongQueue(t, musicQueueStore) {
                 id: songs.length + index + 1,
                 hash: song.hash,
                 name: song.name,
-                img: song.cover?.replace("{size}", 480).replace('http://', 'https://') || './assets/images/ico.png',
+                img: song.cover?.replace("{size}", 480) || './assets/images/ico.png',
                 author: song.author,
                 timeLength: song.timelen
             };
