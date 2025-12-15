@@ -302,7 +302,7 @@ const updateCurrentTime = throttle(() => {
 
 // 初始化各个模块
 const audioController = useAudioController({ onSongEnd, updateCurrentTime });
-const { playing, isMuted, volume, changeVolume, audio, playbackRate, setPlaybackRate } = audioController;
+const { playing, isMuted, volume, changeVolume, audio, playbackRate, setPlaybackRate, applyLoudnessNormalization, setupAudioSource, toggleLoudnessNormalization, loudnessNormalizationEnabled, currentLoudnessGain } = audioController;
 
 const lyricsHandler = useLyricsHandler(t);
 const { lyricsData, originalLyrics, showLyrics, scrollAmount, SongTips, lyricsMode, toggleLyrics, getLyrics, highlightCurrentChar, resetLyricsHighlight, getCurrentLineText, scrollToCurrentLine, toggleLyricsMode } = lyricsHandler;
@@ -413,7 +413,20 @@ const playSong = async (song) => {
 
         currentSong.value = structuredClone(song);
 
+        // 应用响度规格化
+        if (song.loudnessNormalization) {
+            console.log('[PlayerControl] 应用响度规格化:', song.loudnessNormalization);
+            applyLoudnessNormalization(song.loudnessNormalization);
+        } else {
+            console.log('[PlayerControl] 歌曲无响度规格化数据');
+            applyLoudnessNormalization(null);
+        }
+
         audio.src = song.url;
+
+        // 设置音频源并应用增益 (只在第一次或切换歌曲时)
+        setupAudioSource();
+
         setPlaybackRate(currentSpeed.value);
         console.log('[PlayerControl] 设置音频源:', song.url);
 
@@ -875,6 +888,14 @@ onMounted(() => {
     // 初始化音频设置
     audioController.initAudio();
 
+    // 监听响度规格化开关变更
+    const handleLoudnessChange = (event) => {
+        const enabled = event.detail.enabled;
+        console.log('[PlayerControl] 响度规格化开关变更:', enabled);
+        toggleLoudnessNormalization(enabled);
+    };
+    window.addEventListener('loudness-normalization-change', handleLoudnessChange);
+
     // 初始化歌曲和播放状态
     const current_song = localStorage.getItem('current_song');
     if (current_song) {
@@ -989,6 +1010,9 @@ onMounted(() => {
 onUnmounted(() => {
     // 清除自动切换定时器
     clearAutoSwitchTimer();
+
+    // 移除响度规格化事件监听
+    window.removeEventListener('loudness-normalization-change', () => {});
 
     // 使用AudioController的销毁方法清理基本监听器
     audioController.destroy();

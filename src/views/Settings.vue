@@ -215,6 +215,7 @@ const selectedSettings = ref({
     proxy: { displayText: t('guan-bi'), value: 'off' },
     proxyUrl: { displayText: '', value: '' },
     dataSource: { displayText: '概念版', value: 'concept' },
+    loudnessNormalization: { displayText: t('guan-bi'), value: 'off' },
 });
 
 // 设置分区配置
@@ -257,6 +258,11 @@ const settingSections = computed(() => [
                 key: 'quality',
                 label: t('yin-zhi-xuan-ze'),
                 icon: '🎧 '
+            },
+            {
+                key: 'loudnessNormalization',
+                label: '响度规格化',
+                icon: '🎚️ '
             },
             {
                 key: 'greetings',
@@ -404,6 +410,7 @@ const getItemIcon = (key) => {
         'nativeTitleBar': 'fas fa-window-maximize',
         'font': 'fas fa-font',
         'quality': 'fas fa-headphones',
+        'loudnessNormalization': 'fas fa-sliders-h',
         'greetings': 'fas fa-comment',
         'lyricsBackground': 'fas fa-image',
         'lyricsFontSize': 'fas fa-text-height',
@@ -626,6 +633,13 @@ const selectionTypeMap = {
             { displayText: '正式版', value: 'official' }
         ]
     },
+    loudnessNormalization: {
+        title: '响度规格化',
+        options: [
+            { displayText: t('da-kai'), value: 'on' },
+            { displayText: t('guan-bi'), value: 'off' }
+        ]
+    },
 
 };
 
@@ -724,6 +738,12 @@ const selectOption = (option) => {
         },
         'networkMode': () => {
             showRefreshHint.value.networkMode = true;
+        },
+        'loudnessNormalization': () => {
+            // 触发响度规格化开关变更事件
+            window.dispatchEvent(new CustomEvent('loudness-normalization-change', {
+                detail: { enabled: option.value === 'on' }
+            }));
         }
     };
     actions[selectionType.value]?.();
