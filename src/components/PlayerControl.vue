@@ -302,7 +302,7 @@ const updateCurrentTime = throttle(() => {
 
 // 初始化各个模块
 const audioController = useAudioController({ onSongEnd, updateCurrentTime });
-const { playing, isMuted, volume, changeVolume, audio, playbackRate, setPlaybackRate, applyLoudnessNormalization, setupAudioSource, toggleLoudnessNormalization, loudnessNormalizationEnabled, currentLoudnessGain } = audioController;
+const { playing, isMuted, volume, changeVolume, audio, playbackRate, setPlaybackRate, applyLoudnessNormalization, ensureAudioContextRunning, toggleLoudnessNormalization, loudnessNormalizationEnabled, currentLoudnessGain, webAudioInitialized } = audioController;
 
 const lyricsHandler = useLyricsHandler(t);
 const { lyricsData, originalLyrics, showLyrics, scrollAmount, SongTips, lyricsMode, toggleLyrics, getLyrics, highlightCurrentChar, resetLyricsHighlight, getCurrentLineText, scrollToCurrentLine, toggleLyricsMode } = lyricsHandler;
@@ -413,7 +413,7 @@ const playSong = async (song) => {
 
         currentSong.value = structuredClone(song);
 
-        // 应用响度规格化
+        // 应用响度规格化（如果已启用 Web Audio）
         if (song.loudnessNormalization) {
             console.log('[PlayerControl] 应用响度规格化:', song.loudnessNormalization);
             applyLoudnessNormalization(song.loudnessNormalization);
@@ -424,8 +424,8 @@ const playSong = async (song) => {
 
         audio.src = song.url;
 
-        // 设置音频源并应用增益 (只在第一次或切换歌曲时)
-        setupAudioSource();
+        // 确保 AudioContext 处于运行状态（如果已启用）
+        await ensureAudioContextRunning();
 
         setPlaybackRate(currentSpeed.value);
         console.log('[PlayerControl] 设置音频源:', song.url);

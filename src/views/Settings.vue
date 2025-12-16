@@ -261,8 +261,10 @@ const settingSections = computed(() => [
             },
             {
                 key: 'loudnessNormalization',
-                label: '响度规格化',
-                icon: '🎚️ '
+                label: '平衡音频响度',
+                icon: '🎚️ ',
+                showRefreshHint: true,
+                refreshHintText: '开启需刷新页面后生效'
             },
             {
                 key: 'greetings',
@@ -634,7 +636,7 @@ const selectionTypeMap = {
         ]
     },
     loudnessNormalization: {
-        title: '响度规格化',
+        title: '平衡音频响度',
         options: [
             { displayText: t('da-kai'), value: 'on' },
             { displayText: t('guan-bi'), value: 'off' }
@@ -749,7 +751,7 @@ const selectOption = (option) => {
     actions[selectionType.value]?.();
     saveSettings();
     if(!['apiMode','font','fontUrl', 'proxy'].includes(selectionType.value)) closeSelection();
-    const refreshHintTypes = ['lyricsBackground', 'lyricsFontSize', 'gpuAcceleration', 'highDpi', 'apiMode', 'touchBar', 'preventAppSuspension', 'networkMode', 'font', 'proxy', 'dataSource'];
+    const refreshHintTypes = ['lyricsBackground', 'lyricsFontSize', 'gpuAcceleration', 'highDpi', 'apiMode', 'touchBar', 'preventAppSuspension', 'networkMode', 'font', 'proxy', 'dataSource', 'loudnessNormalization'];
     if (refreshHintTypes.includes(selectionType.value)) {
         showRefreshHint.value[selectionType.value] = true;
     }
