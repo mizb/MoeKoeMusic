@@ -142,6 +142,7 @@
                                 <span v-if="item.privilege == 10" class="icon vip-icon">VIP</span>
                                 <span v-if="item.isHQ" class="icon sq-icon">HQ</span>
                                 <span v-else-if="item.isSQ" class="icon sq-icon">SQ</span>
+                                <span v-if="item.mvhash" class="icon mv-icon">MV</span>
                             </div>
                             <div v-if="viewMode === 'grid' && item.remark" :title="item.remark" class="track-remark">{{ item.remark }}</div>
                         </div>
@@ -369,6 +370,7 @@ const fetchArtistSongs = async () => {
                 isSQ: track.hash_flac !== '',
                 isHQ: track.hash_320 !== '',
                 privilege: track.privilege || 0,
+                mvhash: track.mvhash || '',
                 originalData: track
             }));
 
@@ -424,6 +426,7 @@ const fetchPlaylistTracks = async () => {
                     isSQ: track.relate_goods && track.relate_goods.length > 2,
                     isHQ: track.relate_goods && track.relate_goods.length > 1,
                     privilege: track.privilege || 0,
+                    mvhash: track.mvhash || '',
                     originalData: track
                 };
             });
@@ -477,6 +480,7 @@ const loadMoreTracks = async () => {
                     isSQ: track.hash_flac !== '',
                     isHQ: track.hash_320 !== '',
                     privilege: track.privilege || 0,
+                    mvhash: track.mvhash || '',
                     originalData: track
                 }));
 
@@ -515,6 +519,7 @@ const loadMoreTracks = async () => {
                         isSQ: track.relate_goods && track.relate_goods.length > 2,
                         isHQ: track.relate_goods && track.relate_goods.length > 1,
                         privilege: track.privilege || 0,
+                        mvhash: track.mvhash || '',
                         originalData: track
                     };
                 });
@@ -718,13 +723,14 @@ const sharePlaylist = () => {
 // 右键菜单
 const showContextMenu = (event, song) => {
     if (contextMenuRef.value) {
-        contextMenuRef.value.openContextMenu(event, { 
-            OriSongName: song.OriSongName, 
-            FileHash: song.hash, 
+        contextMenuRef.value.openContextMenu(event, {
+            OriSongName: song.OriSongName,
+            FileHash: song.hash,
             fileid: song.originalData.fileid,
             userid: isArtist.value ? null : detail.value.list_create_userid,
             timeLength: song.timelen,
             cover: song.cover,
+            mvhash: song.mvhash,
         }, isArtist.value ? null : detail.value.listid);
     }
 };
@@ -1353,6 +1359,10 @@ const changeArtistSort = (sortType) => {
 
 .sq-icon {
     color: #0094ff;
+}
+
+.mv-icon {
+    color: #ff1744;
 }
 
 .queue-play-btn {
