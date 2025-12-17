@@ -137,10 +137,13 @@
                         </div>
 
                         <!-- 歌曲信息 -->
-                        <div class="track-title" :title="item.name">{{ item.name }}
-                            <span v-if="item.privilege == 10" class="icon vip-icon">VIP</span>
-                            <span v-if="item.isHQ" class="icon sq-icon">HQ</span>
-                            <span v-else-if="item.isSQ" class="icon sq-icon">SQ</span>
+                        <div class="track-title-container">
+                            <div class="track-title" :title="item.name">{{ item.name }}
+                                <span v-if="item.privilege == 10" class="icon vip-icon">VIP</span>
+                                <span v-if="item.isHQ" class="icon sq-icon">HQ</span>
+                                <span v-else-if="item.isSQ" class="icon sq-icon">SQ</span>
+                            </div>
+                            <div v-if="viewMode === 'grid' && item.remark" :title="item.remark" class="track-remark">{{ item.remark }}</div>
                         </div>
                         <div class="track-artist" :title="item.author">{{ item.author }}</div>
                         <div class="track-album" :title="item.album">{{ item.album }}</div>
@@ -356,6 +359,7 @@ const fetchArtistSongs = async () => {
             .filter(track => !!track.hash)
             .map(track => ({
                 hash: track.hash || '',
+                remark: track.remark || '',
                 OriSongName: track.audio_name + ' - ' + track.author_name,
                 name: track.audio_name || '',
                 author: track.author_name || '',
@@ -410,6 +414,7 @@ const fetchPlaylistTracks = async () => {
                 const nameParts = track.name.split(' - ');
                 return {
                     hash: track.hash || '',
+                    remark: track.remark || '',
                     OriSongName: track.name,
                     name: nameParts.length > 1 ? nameParts[1] : track.name,
                     author: nameParts.length > 1 ? nameParts[0] : '',
@@ -866,7 +871,15 @@ const toggleSelectAll = () => {
 };
 
 // 根据字段排序
-const sortTracks = (field) => {
+const sortTracks = async (field) => {
+    if (hasMore.value) {
+        isSearching.value = true;
+        try {
+            await loadAndAppendRemainingTracks();
+        } finally {
+            isSearching.value = false;
+        }
+    }
     if (sortField.value === field) {
         sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc';
     } else {
@@ -1282,11 +1295,26 @@ const changeArtistSort = (sortType) => {
     width: 30px;
 }
 
-.track-title {
+.track-title-container {
     flex: 2;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.track-title {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.track-remark {
+    font-size: 12px;
+    color: #999;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
 }
 
 .track-artist {
@@ -1567,11 +1595,26 @@ const changeArtistSort = (sortType) => {
 }
 
 /* 调整封面视图下的其他元素样式 */
-.li.cover-view .track-title {
+.li.cover-view .track-title-container {
     flex: 2;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.li.cover-view .track-title {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.li.cover-view .track-remark {
+    font-size: 12px;
+    color: #999;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
 }
 
 .li.cover-view .track-artist {
