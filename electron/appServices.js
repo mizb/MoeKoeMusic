@@ -224,6 +224,10 @@ const getIconPath = (iconName, subPath = '') => path.join(
     iconName
 );
 
+export function getTray() {
+    return tray;
+}
+
 // 创建托盘图标及菜单
 export function createTray(mainWindow, title = '') {
     if (tray && title) {

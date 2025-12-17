@@ -195,6 +195,7 @@ const selectedSettings = ref({
     quality: { displayText: t('pu-tong-yin-zhi'), value: 'normal' },
     lyricsBackground: { displayText: t('da-kai'), value: 'on' },
     desktopLyrics: { displayText: t('guan-bi'), value: 'off' },
+    statusBarLyrics: { displayText: t('guan-bi'), value: 'off' },
     lyricsFontSize: { displayText: t('zhong'), value: '24px' },
     lyricsTranslation: { displayText: t('da-kai'), value: 'on' },
     lyricsAlign: { displayText: '居中', value: 'center' },
@@ -299,6 +300,10 @@ const settingSections = computed(() => [
             {
                 key: 'desktopLyrics',
                 label: t('xian-shi-zhuo-mian-ge-ci')
+            },
+            {
+                key: 'statusBarLyrics',
+                label: '状态栏歌词'
             },
             {
                 key: 'lyricsTranslation',
@@ -417,6 +422,7 @@ const getItemIcon = (key) => {
         'lyricsBackground': 'fas fa-image',
         'lyricsFontSize': 'fas fa-text-height',
         'desktopLyrics': 'fas fa-desktop',
+        'statusBarLyrics': 'fas fa-align-justify',
         'lyricsTranslation': 'fas fa-language',
         'lyricsAlign': 'fas fa-align-center',
         'gpuAcceleration': 'fas fa-microchip',
@@ -496,6 +502,13 @@ const selectionTypeMap = {
         title: t('xian-shi-zhuo-mian-ge-ci'),
         options: [
             { displayText: t('da-kai'), value: 'on' },
+            { displayText: t('guan-bi'), value: 'off' }
+        ]
+    },
+    statusBarLyrics: {
+        title: '状态栏歌词',
+        options: [
+            { displayText: t('da-kai')+ ' (仅支持Mac)', value: 'on' },
             { displayText: t('guan-bi'), value: 'off' }
         ]
     },
@@ -695,13 +708,17 @@ const openHelpLink = () => {
 };
 
 const selectOption = (option) => {
-    const electronFeatures = ['desktopLyrics', 'gpuAcceleration', 'minimizeToTray', 'highDpi', 'nativeTitleBar', 'touchBar', 'autoStart', 'startMinimized', 'preventAppSuspension', 'networkMode', 'poxySettings', 'apiMode', 'dataSource'];
+    const electronFeatures = ['desktopLyrics', 'statusBarLyrics', 'gpuAcceleration', 'minimizeToTray', 'highDpi', 'nativeTitleBar', 'touchBar', 'autoStart', 'startMinimized', 'preventAppSuspension', 'networkMode', 'poxySettings', 'apiMode', 'dataSource'];
     if (!isElectron() && electronFeatures.includes(selectionType.value)) {
         window.$modal.alert(t('fei-ke-hu-duan-huan-jing-wu-fa-qi-yong'));
         return;
     }
     if(selectionType.value == 'touchBar' && window.electron.platform != 'darwin'){
         window.$modal.alert('非Mac设备不支持TouchBar');
+        return;
+    }
+    if(selectionType.value == 'statusBarLyrics' && window.electron.platform != 'darwin'){
+        window.$modal.alert('状态栏歌词仅支持Mac系统');
         return;
     }
     selectedSettings.value[selectionType.value] = option;

@@ -267,11 +267,13 @@ const updateCurrentTime = throttle(() => {
             const serverLyricsPayload = JSON.parse(JSON.stringify(serverLyricsSource));
             const currentSongPayload = JSON.parse(JSON.stringify(currentSong.value ?? null));
 
-            if (savedConfig?.desktopLyrics === 'on') {
+            if (savedConfig?.desktopLyrics === 'on' || savedConfig?.statusBarLyrics === 'on') {
+                const currentLine = hasLyricsData ? getCurrentLineText(audio.currentTime) : '';
                 window.electron.ipcRenderer.send('lyrics-data', {
                     currentTime: audio.currentTime,
                     lyricsData: desktopLyricsPayload,
-                    currentSongHash: currentSong.value?.hash || ''
+                    currentSongHash: currentSong.value?.hash || '',
+                    currentLyric: currentLine
                 });
             }
             if (savedConfig?.apiMode === 'on') {
@@ -292,7 +294,7 @@ const updateCurrentTime = throttle(() => {
         }
     }
 
-    if (!hasLyricsData && isElectron() && (savedConfig?.desktopLyrics === 'on' || savedConfig?.apiMode === 'on')) {
+    if (!hasLyricsData && isElectron() && (savedConfig?.desktopLyrics === 'on' || savedConfig?.statusBarLyrics === 'on' || savedConfig?.apiMode === 'on')) {
         if (isLyrics === false) return;
         getCurrentLyrics();
     }
