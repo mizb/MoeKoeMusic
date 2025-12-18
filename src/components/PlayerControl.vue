@@ -789,6 +789,33 @@ const handleLyricsClick = (lineIndex) => {
     lyricScrollTimer = null;
 }
 
+// 复制全部歌词到剪贴板
+const copyLyricsToClipboard = async () => {
+    if (!showLyrics.value || !lyricsData.value || lyricsData.value.length === 0) {
+        return;
+    }
+    try {
+        let lyricsText = '';
+        lyricsData.value.forEach((lineData) => {
+            const originalLine = lineData.characters.map(char => char.char).join('');
+            lyricsText += originalLine + '\n';
+            if (lineData.translated) {
+                lyricsText += lineData.translated + '\n';
+            }
+            if (lineData.romanized) {
+                lyricsText += lineData.romanized + '\n';
+            }
+            if (lineData.translated || lineData.romanized) {
+                lyricsText += '\n';
+            }
+        });
+        await navigator.clipboard.writeText(lyricsText.trim());
+        $message.success('歌词已复制到剪贴板');
+    } catch (error) {
+        $message.error('复制歌词失败');
+    }
+};
+
 // 键盘快捷键
 const handleKeyDown = (event) => {
     const isInputFocused = ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName);
@@ -807,6 +834,13 @@ const handleKeyDown = (event) => {
             break;
         case 'Escape':
             if (showLyrics.value) toggleLyrics(currentSong.value.hash, audio.currentTime);
+            break;
+        case 'KeyC':
+            // Ctrl+C 或 Cmd+C 复制歌词（仅在全屏歌词界面）
+            if ((event.ctrlKey || event.metaKey) && showLyrics.value) {
+                event.preventDefault();
+                copyLyricsToClipboard();
+            }
             break;
     }
 };
