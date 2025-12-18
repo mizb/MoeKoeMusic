@@ -303,13 +303,13 @@ const settingSections = computed(() => [
             },
             {
                 key: 'statusBarLyrics',
-                label: '状态栏歌词'
+                label: '状态栏歌词',
+                showRefreshHint: true,
+                refreshHintText: t('zhong-qi-hou-sheng-xiao')
             },
             {
                 key: 'lyricsTranslation',
-                label: '歌词翻译',
-                showRefreshHint: true,
-                refreshHintText: t('zhong-qi-hou-sheng-xiao')
+                label: '歌词翻译'
             },
             {
                 key: 'lyricsAlign',
@@ -671,7 +671,8 @@ const showRefreshHint = ref({
     networkMode: false,
     apiMode: false,
     proxy: false,
-    dataSource: false
+    dataSource: false,
+    statusBarLyrics: false,
 });
 
 const openSelection = (type, helpLink) => {
@@ -708,7 +709,7 @@ const openHelpLink = () => {
 };
 
 const selectOption = (option) => {
-    const electronFeatures = ['desktopLyrics', 'statusBarLyrics', 'gpuAcceleration', 'minimizeToTray', 'highDpi', 'nativeTitleBar', 'touchBar', 'autoStart', 'startMinimized', 'preventAppSuspension', 'networkMode', 'poxySettings', 'apiMode', 'dataSource'];
+    const electronFeatures = ['desktopLyrics', 'statusBarLyrics', 'gpuAcceleration', 'minimizeToTray', 'highDpi', 'nativeTitleBar', 'touchBar', 'autoStart', 'startMinimized', 'preventAppSuspension', 'networkMode', 'poxySettings', 'apiMode', 'dataSource', 'statusBarLyrics'];
     if (!isElectron() && electronFeatures.includes(selectionType.value)) {
         window.$modal.alert(t('fei-ke-hu-duan-huan-jing-wu-fa-qi-yong'));
         return;
@@ -725,9 +726,6 @@ const selectOption = (option) => {
     const actions = {
         'themeColor': () => proxy.$applyColorTheme(option.value),
         'theme': () => proxy.$setTheme(option.value),
-        'nativeTitleBar': () => {
-            showRefreshHint.value.nativeTitleBar = true;
-        },
         'language': () => {
             proxy.$i18n.locale = option.value;
             document.documentElement.lang = option.value;
@@ -752,12 +750,6 @@ const selectOption = (option) => {
             const action = option.value === 'on' ? 'display-lyrics' : 'close-lyrics';
             window.electron.ipcRenderer.send('desktop-lyrics-action', action);
         },
-        'preventAppSuspension': () => {
-            showRefreshHint.value.preventAppSuspension = true;
-        },
-        'networkMode': () => {
-            showRefreshHint.value.networkMode = true;
-        },
         'loudnessNormalization': () => {
             // 触发响度规格化开关变更事件
             window.dispatchEvent(new CustomEvent('loudness-normalization-change', {
@@ -768,7 +760,7 @@ const selectOption = (option) => {
     actions[selectionType.value]?.();
     saveSettings();
     if(!['apiMode','font','fontUrl', 'proxy'].includes(selectionType.value)) closeSelection();
-    const refreshHintTypes = ['lyricsBackground', 'lyricsFontSize', 'gpuAcceleration', 'highDpi', 'apiMode', 'touchBar', 'preventAppSuspension', 'networkMode', 'font', 'proxy', 'dataSource', 'loudnessNormalization'];
+    const refreshHintTypes = ['nativeTitleBar','lyricsBackground', 'lyricsFontSize', 'gpuAcceleration', 'highDpi', 'apiMode', 'touchBar', 'preventAppSuspension', 'networkMode', 'font', 'proxy', 'dataSource', 'loudnessNormalization', 'statusBarLyrics'];
     if (refreshHintTypes.includes(selectionType.value)) {
         showRefreshHint.value[selectionType.value] = true;
     }

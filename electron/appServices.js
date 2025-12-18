@@ -294,6 +294,15 @@ export function createTray(mainWindow, title = '') {
             }
         },
         {
+            label: '重启应用',
+            icon: getIconPath('restart.png', 'menu'),
+            click: () => {
+                app.relaunch();
+                app.isQuitting = true;
+                app.quit();
+            }
+        },
+        {
             label: '显示/隐藏',
             accelerator: 'CmdOrCtrl+Shift+S',
             icon: getIconPath('show.png', 'menu'),
