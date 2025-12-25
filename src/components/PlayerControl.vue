@@ -267,11 +267,13 @@ const updateCurrentTime = throttle(() => {
             const serverLyricsPayload = JSON.parse(JSON.stringify(serverLyricsSource));
             const currentSongPayload = JSON.parse(JSON.stringify(currentSong.value ?? null));
 
-            if (savedConfig?.desktopLyrics === 'on') {
+            if (savedConfig?.desktopLyrics === 'on' || savedConfig?.statusBarLyrics === 'on') {
+                const currentLine = hasLyricsData ? getCurrentLineText(audio.currentTime) : '';
                 window.electron.ipcRenderer.send('lyrics-data', {
                     currentTime: audio.currentTime,
                     lyricsData: desktopLyricsPayload,
-                    currentSongHash: currentSong.value?.hash || ''
+                    currentSongHash: currentSong.value?.hash || '',
+                    currentLyric: currentLine
                 });
             }
             if (savedConfig?.apiMode === 'on') {
@@ -292,7 +294,7 @@ const updateCurrentTime = throttle(() => {
         }
     }
 
-    if (!hasLyricsData && isElectron() && (savedConfig?.desktopLyrics === 'on' || savedConfig?.apiMode === 'on')) {
+    if (!hasLyricsData && isElectron() && (savedConfig?.desktopLyrics === 'on' || savedConfig?.statusBarLyrics === 'on' || savedConfig?.apiMode === 'on')) {
         if (isLyrics === false) return;
         getCurrentLyrics();
     }
@@ -302,7 +304,7 @@ const updateCurrentTime = throttle(() => {
 
 // 初始化各个模块
 const audioController = useAudioController({ onSongEnd, updateCurrentTime });
-const { playing, isMuted, volume, changeVolume, audio, playbackRate, setPlaybackRate } = audioController;
+const { playing, isMuted, volume, changeVolume, audio, playbackRate, setPlaybackRate, applyLoudnessNormalization, ensureAudioContextRunning, toggleLoudnessNormalization, loudnessNormalizationEnabled, currentLoudnessGain, webAudioInitialized } = audioController;
 
 const lyricsHandler = useLyricsHandler(t);
 const { lyricsData, originalLyrics, showLyrics, scrollAmount, SongTips, lyricsMode, toggleLyrics, getLyrics, highlightCurrentChar, resetLyricsHighlight, getCurrentLineText, scrollToCurrentLine, toggleLyricsMode } = lyricsHandler;
@@ -413,7 +415,20 @@ const playSong = async (song) => {
 
         currentSong.value = structuredClone(song);
 
+        // 应用响度规格化（如果已启用 Web Audio）
+        if (song.loudnessNormalization) {
+            console.log('[PlayerControl] 应用响度规格化:', song.loudnessNormalization);
+            applyLoudnessNormalization(song.loudnessNormalization);
+        } else {
+            console.log('[PlayerControl] 歌曲无响度规格化数据');
+            applyLoudnessNormalization(null);
+        }
+
         audio.src = song.url;
+
+        // 确保 AudioContext 处于运行状态（如果已启用）
+        await ensureAudioContextRunning();
+
         setPlaybackRate(currentSpeed.value);
         console.log('[PlayerControl] 设置音频源:', song.url);
 
@@ -774,6 +789,33 @@ const handleLyricsClick = (lineIndex) => {
     lyricScrollTimer = null;
 }
 
+// 复制全部歌词到剪贴板
+const copyLyricsToClipboard = async () => {
+    if (!showLyrics.value || !lyricsData.value || lyricsData.value.length === 0) {
+        return;
+    }
+    try {
+        let lyricsText = '';
+        lyricsData.value.forEach((lineData) => {
+            const originalLine = lineData.characters.map(char => char.char).join('');
+            lyricsText += originalLine + '\n';
+            if (lineData.translated) {
+                lyricsText += lineData.translated + '\n';
+            }
+            if (lineData.romanized) {
+                lyricsText += lineData.romanized + '\n';
+            }
+            if (lineData.translated || lineData.romanized) {
+                lyricsText += '\n';
+            }
+        });
+        await navigator.clipboard.writeText(lyricsText.trim());
+        $message.success('歌词已复制到剪贴板');
+    } catch (error) {
+        $message.error('复制歌词失败');
+    }
+};
+
 // 键盘快捷键
 const handleKeyDown = (event) => {
     const isInputFocused = ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName);
@@ -792,6 +834,13 @@ const handleKeyDown = (event) => {
             break;
         case 'Escape':
             if (showLyrics.value) toggleLyrics(currentSong.value.hash, audio.currentTime);
+            break;
+        case 'KeyC':
+            // Ctrl+C 或 Cmd+C 复制歌词（仅在全屏歌词界面）
+            if ((event.ctrlKey || event.metaKey) && showLyrics.value) {
+                event.preventDefault();
+                copyLyricsToClipboard();
+            }
             break;
     }
 };
@@ -874,6 +923,14 @@ onMounted(() => {
 
     // 初始化音频设置
     audioController.initAudio();
+
+    // 监听响度规格化开关变更
+    const handleLoudnessChange = (event) => {
+        const enabled = event.detail.enabled;
+        console.log('[PlayerControl] 响度规格化开关变更:', enabled);
+        toggleLoudnessNormalization(enabled);
+    };
+    window.addEventListener('loudness-normalization-change', handleLoudnessChange);
 
     // 初始化歌曲和播放状态
     const current_song = localStorage.getItem('current_song');
@@ -990,6 +1047,9 @@ onUnmounted(() => {
     // 清除自动切换定时器
     clearAutoSwitchTimer();
 
+    // 移除响度规格化事件监听
+    window.removeEventListener('loudness-normalization-change', () => {});
+
     // 使用AudioController的销毁方法清理基本监听器
     audioController.destroy();
 
@@ -1016,6 +1076,7 @@ onUnmounted(() => {
 
 // 对外暴露接口
 defineExpose({
+    playing,
     addSongToQueue: async (hash, name, img, author) => {
         clearAutoSwitchTimer();
 

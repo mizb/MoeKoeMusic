@@ -73,7 +73,13 @@ export default function useSongQueue(t, musicQueueStore) {
                 img: img,
                 author: author,
                 timeLength: response.timeLength,
-                url: response.url[0]
+                url: response.url[0],
+                // 响度规格化参数
+                loudnessNormalization: {
+                    volume: response.volume || 0,
+                    volumeGain: response.volume_gain || 0,
+                    volumePeak: response.volume_peak || 1
+                }
             };
 
             // 根据是否需要重置播放位置
