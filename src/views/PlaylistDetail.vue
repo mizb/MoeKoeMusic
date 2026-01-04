@@ -858,7 +858,7 @@ const deletePlaylist = async () => {
 // 分享歌单
 const sharePlaylist = () => {
     isDropdownVisible.value = false;
-    share('share?listid='+route.query.global_collection_id);
+    share(detail.value.name,route.query.global_collection_id, 1);
 };
 
 // 右键菜单
