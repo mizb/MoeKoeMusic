@@ -332,7 +332,7 @@ const { currentPlaybackModeIndex, currentPlaybackMode, playedSongsStack, current
 
 const mediaSession = useMediaSession();
 
-const songQueue = useSongQueue(t, musicQueueStore);
+const songQueue = useSongQueue(t, musicQueueStore, queueList);
 const { currentSong, NextSong, addSongToQueue, addCloudMusicToQueue, addLocalMusicToQueue, addLocalPlaylistToQueue, addToNext, getPlaylistAllSongs, addPlaylistToQueue, addCloudPlaylistToQueue } = songQueue;
 
 // 添加自动切换定时器引用

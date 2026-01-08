@@ -3,7 +3,7 @@ import { get } from '../../utils/request';
 import { MoeAuthStore } from '../../stores/store';
 
 
-export default function useSongQueue(t, musicQueueStore) {
+export default function useSongQueue(t, musicQueueStore, queueList = null) {
     const currentSong = ref({ name: '', author: '', img: '', url: '', hash: '' });
     const NextSong = ref([]);
     const timeoutId = ref(null);
