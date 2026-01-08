@@ -17,8 +17,8 @@
                 <i v-else class="fas fa-music"></i>
             </div>
             <div class="song-info" @click="toggleLyrics(currentSong.hash, currentTime)">
-                <div class="song-title">{{ currentSong?.name || "MoeKoeMusic" }}</div>
-                <div class="artist">{{ currentSong?.author || "MoeJue" }}</div>
+                <div class="song-title" @click.stop="searchSong(currentSong.name)">{{ currentSong?.name || "MoeKoeMusic" }}</div>
+                <div class="artist" @click.stop="searchSong(currentSong.author)">{{ currentSong?.author || "MoeJue" }}</div>
             </div>
             <div class="controls">
                 <button class="control-btn" @click="playSongFromQueue('previous')">
@@ -106,8 +106,8 @@
                         </transition>
                     </div>
                     <div class="song-details">
-                        <div class="song-title">{{ currentSong?.name }}</div>
-                        <div class="artist">{{ currentSong?.author }}</div>
+                        <div class="song-title" @click="searchSong(currentSong.name)">{{ currentSong?.name }}</div>
+                        <div class="artist" @click="searchSong(currentSong.author)">{{ currentSong?.author }}</div>
                     </div>
 
                     <!-- 播放进度条 -->
@@ -934,6 +934,19 @@ const changePlaybackSpeed = (speed) => {
     if (audio.duration && currentSong.value?.hash) {
         mediaSession.updatePositionState(audio.currentTime, audio.duration, speed);
     }
+};
+
+// 跳转到搜索页面搜索歌曲
+const searchSong = (songName) => {
+    // 关闭全屏歌词
+    if (showLyrics.value) {
+        toggleLyrics(currentSong.value.hash, audio.currentTime);
+    }
+    if (!songName) return;
+    router.push({
+        path: '/search',
+        query: { q: songName }
+    });
 };
 
 // 组件挂载
