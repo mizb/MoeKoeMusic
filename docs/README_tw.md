@@ -50,11 +50,10 @@
 - 🛠  更多特性開發中
 
 ## 📢 Todo List
-- [ ] 📺  支持MV播放
+- [x] 📺  支持MV播放
 - [x] 🌚 Light/Dark Mode  自動切換
 - [x] 👆  支持Touch Bar
 - [x] 🖥️  支持PWA，可在Chrome/Edge裏點擊地址欄右邊的 ➕  安裝到電腦
-- [ ] 🟥  支持Last.fm Scrobble
 - [ ] 🎧  支持Mpris
 - [x] ⌨️  全域快速鍵
 - [x] 🤟  多語言支持

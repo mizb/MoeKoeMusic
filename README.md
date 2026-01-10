@@ -49,11 +49,10 @@
 - 🛠 更多特性开发中
 
 ## 📢 Todo List
-- [ ] 📺 支持 MV 播放
+- [x] 📺 支持 MV 播放
 - [x] 🌚 Light/Dark Mode 自动切换
 - [x] 👆 支持 Touch Bar
 - [x] 🖥️ 支持 PWA，可在 Chrome/Edge 里点击地址栏右边的 ➕ 安装到电脑
-- [ ] 🟥 支持 Last.fm Scrobble
 - [ ] 🎧 支持 Mpris
 - [x] ⌨️ 全局快捷键
 - [x] 🤟 多语言支持

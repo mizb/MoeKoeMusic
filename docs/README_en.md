@@ -51,11 +51,10 @@ I said on my personal introduction page that I particularly enjoy listening to m
 -  🛠  More features under development
 
 ## 📢 Todo List
-- [ ]  📺  Support MV playback
+- [x]  📺  Support MV playback
 - [x]  🌚 Light/Dark Mode  Automatic switching
 - [x]  👆  Support Touch Bar
 - [x]  🖥️  Support PWA, you can click on the right side of the address bar in Chrome/Edge ➕  Install to computer
-- [ ]  🟥  Supports Last.fm Scrobble
 - [ ]  🎧  Support Mpris
 - [x]  ⌨️   Global shortcut keys
 - [x]  🤟  Multi language support
