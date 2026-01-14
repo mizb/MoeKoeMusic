@@ -17,25 +17,25 @@
                 <i v-else class="fas fa-music"></i>
             </div>
             <div class="song-info" @click="toggleLyrics(currentSong.hash, currentTime)">
-                <div class="song-title">{{ currentSong?.name || "MoeKoeMusic" }}</div>
-                <div class="artist">{{ currentSong?.author || "MoeJue" }}</div>
+                <div class="song-title" @click.stop="searchSong(currentSong.name)">{{ currentSong?.name || "MoeKoeMusic" }}</div>
+                <div class="artist" @click.stop="searchSong(currentSong.author)">{{ currentSong?.author || "MoeJue" }}</div>
             </div>
             <div class="controls">
-                <button class="control-btn" @click="playSongFromQueue('previous')">
+                <button class="control-btn" :title="t('shang-yi-shou')" @click="playSongFromQueue('previous')">
                     <i class="fas fa-step-backward"></i>
                 </button>
-                <button class="control-btn" @click="togglePlayPause">
+                <button class="control-btn" :title="t('zan-ting-bo-fang')" @click="togglePlayPause">
                     <i :class="playing ? 'fas fa-pause' : 'fas fa-play'"></i>
                 </button>
-                <button class="control-btn" @click="playSongFromQueue('next')">
+                <button class="control-btn" :title="t('xia-yi-shou')" @click="playSongFromQueue('next')">
                     <i class="fas fa-step-forward"></i>
                 </button>
             </div>
             <div class="extra-controls">
-                <button class="extra-btn" title="桌面歌词" v-if="isElectron()" @click="desktopLyrics"><i
+                <button class="extra-btn" :title="t('zhuo-mian-ge-ci')" v-if="isElectron()" @click="desktopLyrics"><i
                         class="fas">词</i></button>
                 <div class="playback-speed">
-                    <button class="extra-btn" @click="toggleSpeedMenu" title="播放速度">
+                    <button class="extra-btn" @click="toggleSpeedMenu" :title="t('bo-fang-su-du')">
                         <i class="fas fa-tachometer-alt"></i>
                     </button>
                     <div v-if="showSpeedMenu" class="speed-menu">
@@ -45,11 +45,11 @@
                         </div>
                     </div>
                 </div>
-                <button class="extra-btn" title="我喜欢" @click="playlistSelect.toLike()"><i
+                <button class="extra-btn" :title="t('wo-xi-huan')" @click="playlistSelect.toLike()"><i
                         class="fas fa-heart"></i></button>
-                <button class="extra-btn" title="收藏至" @click="playlistSelect.fetchPlaylists()"><i
+                <button class="extra-btn" :title="t('shou-cang-zhi')" @click="playlistSelect.fetchPlaylists()"><i
                         class="fas fa-add"></i></button>
-                <button class="extra-btn" title="分享歌曲" @click="share('share?hash=' + currentSong.hash)"><i
+                <button class="extra-btn" :title="t('fen-xiang-ge-qu')" @click="share(currentSong.name, currentSong.hash)"><i
                         class="fas fa-share"></i></button>
                 <button class="extra-btn" @click="togglePlaybackMode">
                     <i v-if="currentPlaybackModeIndex != '2'" :class="currentPlaybackMode.icon"
@@ -59,7 +59,7 @@
                         <sup>1</sup>
                     </span>
                 </button>
-                <button class="extra-btn" @click="queueList.openQueue()"><i class="fas fa-list"></i></button>
+                <button class="extra-btn" :title="t('bo-fang-lie-biao')" @click="queueList.openQueue()"><i class="fas fa-list"></i></button>
                 <!-- 音量控制 -->
                 <div class="volume-control" @wheel="handleVolumeScroll">
                     <i :class="isMuted ? 'fas fa-volume-mute' : 'fas fa-volume-up'" @click="toggleMute"></i>
@@ -84,7 +84,7 @@
                 <div class="close-btn">
                     <i class="fas fa-chevron-down" @click="toggleLyrics(currentSong.hash, currentTime)"></i>
                 </div>
-                <div class="lyrics-mode-btn" v-if="hasMultiLyricsMode" @click="switchLyricsMode" :title="lyricsMode === 'translation' ? '切换到音译' : '切换到翻译'">
+                <div class="lyrics-mode-btn" v-if="hasMultiLyricsMode" @click="switchLyricsMode" :title="lyricsMode === 'translation' ? t('qie-huan-dao-yin-yi') : t('qie-huan-dao-fan-yi')">
                     <i class="fas fa-language"></i>
                 </div>
 
@@ -106,8 +106,8 @@
                         </transition>
                     </div>
                     <div class="song-details">
-                        <div class="song-title">{{ currentSong?.name }}</div>
-                        <div class="artist">{{ currentSong?.author }}</div>
+                        <div class="song-title" @click="searchSong(currentSong.name)">{{ currentSong?.name }}</div>
+                        <div class="artist" @click="searchSong(currentSong.author)">{{ currentSong?.author }}</div>
                     </div>
 
                     <!-- 播放进度条 -->
@@ -128,19 +128,19 @@
                     </div>
 
                     <div class="player-controls">
-                        <button class="control-btn like-btn" title="我喜欢" @click="playlistSelect.toLike()">
+                        <button class="control-btn like-btn" :title="t('wo-xi-huan')" @click="playlistSelect.toLike()">
                             <i class="fas fa-heart"></i>
                         </button>
-                        <button class="control-btn" @click="playSongFromQueue('previous')">
+                        <button class="control-btn" :title="t('shang-yi-shou')" @click="playSongFromQueue('previous')">
                             <i class="fas fa-step-backward"></i>
                         </button>
-                        <button class="control-btn" @click="togglePlayPause">
+                        <button class="control-btn" :title="t('zan-ting-bo-fang')" @click="togglePlayPause">
                             <i :class="playing ? 'fas fa-pause' : 'fas fa-play'"></i>
                         </button>
-                        <button class="control-btn" @click="playSongFromQueue('next')">
+                        <button class="control-btn" :title="t('xia-yi-shou')" @click="playSongFromQueue('next')">
                             <i class="fas fa-step-forward"></i>
                         </button>
-                        <button class="control-btn" @click="togglePlaybackMode">
+                        <button class="control-btn" :title="t('qie-huan-bo-fang-mo-shi')" @click="togglePlaybackMode">
                             <i v-if="currentPlaybackModeIndex != '2'" :class="currentPlaybackMode.icon" :title="currentPlaybackMode.title"></i>
                             <span v-else class="loop-icon" :title="currentPlaybackMode.title">
                                 <i class="fas fa-repeat"></i>
@@ -175,7 +175,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useMusicQueueStore } from '../stores/musicQueue';
 import { useI18n } from 'vue-i18n';
 import PlaylistSelectModal from './PlaylistSelectModal.vue';
@@ -309,6 +309,21 @@ const { playing, isMuted, volume, changeVolume, audio, playbackRate, setPlayback
 const lyricsHandler = useLyricsHandler(t);
 const { lyricsData, originalLyrics, showLyrics, scrollAmount, SongTips, lyricsMode, toggleLyrics, getLyrics, highlightCurrentChar, resetLyricsHighlight, getCurrentLineText, scrollToCurrentLine, toggleLyricsMode } = lyricsHandler;
 
+// 获取当前播放时间的歌词行索引
+const getCurrentLineIndex = (currentTime) => {
+    if (!lyricsData.value || lyricsData.value.length === 0) return -1;
+    for (let i = 0; i < lyricsData.value.length; i++) {
+        const line = lyricsData.value[i];
+        if (line.characters && line.characters.length > 0) {
+            const startTime = line.characters[0].startTime / 1000;
+            if (startTime > currentTime) {
+                return Math.max(0, i - 1);
+            }
+        }
+    }
+    return lyricsData.value.length - 1;
+};
+
 const progressBar = useProgressBar(audio, resetLyricsHighlight);
 const { progressWidth, isProgressDragging, showTimeTooltip, tooltipPosition, tooltipTime, climaxPoints, formatTime, getMusicHighlights, onProgressDragStart, updateProgressFromEvent, updateTimeTooltip, hideTimeTooltip } = progressBar;
 
@@ -317,7 +332,7 @@ const { currentPlaybackModeIndex, currentPlaybackMode, playedSongsStack, current
 
 const mediaSession = useMediaSession();
 
-const songQueue = useSongQueue(t, musicQueueStore);
+const songQueue = useSongQueue(t, musicQueueStore, queueList);
 const { currentSong, NextSong, addSongToQueue, addCloudMusicToQueue, addLocalMusicToQueue, addLocalPlaylistToQueue, addToNext, getPlaylistAllSongs, addPlaylistToQueue, addCloudPlaylistToQueue } = songQueue;
 
 // 添加自动切换定时器引用
@@ -778,7 +793,7 @@ const handleLyricsWheel = (event) => {
 };
 
 const handleLyricsClick = (lineIndex) => {
-    if (!lyricsFlag.value) return;
+    // if (!lyricsFlag.value) return;
     console.log('[PlayerControl] 点击歌词:', lineIndex);
     const lineStartTime = lyricsData.value[lineIndex].characters[0].startTime;
     audio.currentTime = lineStartTime / 1000;
@@ -787,6 +802,10 @@ const handleLyricsClick = (lineIndex) => {
     lyricsFlag.value = false;
     if (lyricScrollTimer) clearTimeout(lyricScrollTimer);
     lyricScrollTimer = null;
+    // 如果音乐暂停了，自动开始播放
+    if (!playing.value) {
+        audio.play();
+    }
 }
 
 // 复制全部歌词到剪贴板
@@ -917,6 +936,19 @@ const changePlaybackSpeed = (speed) => {
     }
 };
 
+// 跳转到搜索页面搜索歌曲
+const searchSong = (songName) => {
+    // 关闭全屏歌词
+    if (showLyrics.value) {
+        toggleLyrics(currentSong.value.hash, audio.currentTime);
+    }
+    if (!songName) return;
+    router.push({
+        path: '/search',
+        query: { q: songName }
+    });
+};
+
 // 组件挂载
 onMounted(() => {
     console.log('[PlayerControl] 组件挂载');
@@ -950,8 +982,11 @@ onMounted(() => {
         } catch (error) {
             console.error('[PlayerControl] 解析保存的歌曲信息失败:', error);
         }
-    } else {
-        console.log('[PlayerControl] 没有缓存的歌曲信息');
+    }
+
+    // 如果有当前歌曲，获取歌词
+    if (currentSong.value?.hash && !currentSong.value.isLocal) {
+        getCurrentLyrics();
     }
 
     // 初始化播放模式
@@ -1042,6 +1077,16 @@ onMounted(() => {
     console.log('[PlayerControl] 音频初始化完成');
 });
 
+// 监听歌词数据变化，同步歌词到当前播放进度
+watch(lyricsData, (newLyrics) => {
+    if (newLyrics && newLyrics.length > 0 && audio.currentTime > 0) {
+        console.log('[PlayerControl] 歌词数据加载完成，同步到当前播放进度:', audio.currentTime);
+        highlightCurrentChar(audio.currentTime, false);
+        const currentLineIndex = getCurrentLineIndex(audio.currentTime);
+        scrollToCurrentLine(currentLineIndex);
+    }
+});
+
 // 组件卸载清理
 onUnmounted(() => {
     // 清除自动切换定时器
@@ -1077,6 +1122,11 @@ onUnmounted(() => {
 // 对外暴露接口
 defineExpose({
     playing,
+    pause: () => {
+        clearAutoSwitchTimer();
+        if (!audio.paused) audio.pause();
+        playing.value = false;
+    },
     addSongToQueue: async (hash, name, img, author) => {
         clearAutoSwitchTimer();
 

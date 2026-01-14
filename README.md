@@ -16,7 +16,8 @@
     <a href="https://github.com/iAJue/MoeKoeMusic/blob/main/docs/README_tw.md" target="blank"><strong>🇨🇳 繁体中文</strong></a>&nbsp;&nbsp;|&nbsp;&nbsp;
     <a href="https://github.com/iAJue/MoeKoeMusic/blob/main/docs/README_ja.md" target="blank"><strong>🇯🇵 日本語</strong></a>&nbsp;&nbsp;|&nbsp;&nbsp;
     <a href="https://github.com/iAJue/MoeKoeMusic/blob/main/docs/README_en.md" target="blank"><strong>🇺🇸 English</strong></a>&nbsp;&nbsp;|&nbsp;&nbsp;
-    <a href="https://github.com/iAJue/MoeKoeMusic/blob/main/docs/README_ko.md" target="blank"><strong>🇰🇷 한국어</strong></a>
+    <a href="https://github.com/iAJue/MoeKoeMusic/blob/main/docs/README_ko.md" target="blank"><strong>🇰🇷 한국어</strong></a>&nbsp;&nbsp;|&nbsp;&nbsp;
+    <a href="https://github.com/iAJue/MoeKoeMusic/blob/main/docs/README_ru.md" target="blank"><strong>🇷🇺 Русский</strong></a>
     <br />
     <br />
   </p>
@@ -48,11 +49,10 @@
 - 🛠 更多特性开发中
 
 ## 📢 Todo List
-- [ ] 📺 支持 MV 播放
+- [x] 📺 支持 MV 播放
 - [x] 🌚 Light/Dark Mode 自动切换
 - [x] 👆 支持 Touch Bar
 - [x] 🖥️ 支持 PWA，可在 Chrome/Edge 里点击地址栏右边的 ➕ 安装到电脑
-- [ ] 🟥 支持 Last.fm Scrobble
 - [ ] 🎧 支持 Mpris
 - [x] ⌨️ 全局快捷键
 - [x] 🤟 多语言支持
