@@ -58,8 +58,16 @@
                     <i class="fas fa-question-circle"></i>
                 </a>
                 <h3>{{ selectionTypeMap[selectionType].title }}</h3>
-                <ul v-if="selectionType !== 'font'">
+                <ul v-if="selectionType !== 'font' && selectionType !== 'audioOutputDevice'">
                     <li v-for="option in selectionTypeMap[selectionType].options" :key="option" @click="selectOption(option)">
+                        {{ option.displayText }}
+                    </li>
+                </ul>
+
+                <ul v-else-if="selectionType === 'audioOutputDevice'">
+                    <li v-if="audioOutputDevicesLoading">正在获取设备列表...</li>
+                    <li v-else-if="audioOutputDeviceOptions.length === 0">未检测到音频输出设备</li>
+                    <li v-else v-for="option in audioOutputDeviceOptions" :key="option.value" @click="selectOption(option)">
                         {{ option.displayText }}
                     </li>
                 </ul>
@@ -219,6 +227,7 @@ const selectedSettings = ref({
     dataSource: { displayText: t('gai-nian-ban-xuan-xiang'), value: 'concept' },
     loudnessNormalization: { displayText: t('guan-bi'), value: 'off' },
     pauseOnAudioOutputChange: { displayText: t('guan-bi'), value: 'off' },
+    audioOutputDevice: { displayText: '默认', value: 'default' },
 });
 
 // 设置分区配置
@@ -273,6 +282,11 @@ const settingSections = computed(() => [
                 key: 'pauseOnAudioOutputChange',
                 label: '输出设备变化自动暂停',
                 icon: '🎧 '
+            },
+            {
+                key: 'audioOutputDevice',
+                label: '音频输出设备',
+                icon: '🔊 '
             },
             {
                 key: 'greetings',
@@ -426,6 +440,7 @@ const getItemIcon = (key) => {
         'quality': 'fas fa-headphones',
         'loudnessNormalization': 'fas fa-sliders-h',
         'pauseOnAudioOutputChange': 'fas fa-exchange-alt',
+        'audioOutputDevice': 'fas fa-volume-up',
         'greetings': 'fas fa-comment',
         'lyricsBackground': 'fas fa-image',
         'lyricsFontSize': 'fas fa-text-height',
@@ -671,6 +686,10 @@ const selectionTypeMap = {
             { displayText: t('guan-bi'), value: 'off' }
         ]
     },
+    audioOutputDevice: {
+        title: '音频输出设备',
+        options: []
+    },
 
 };
 
@@ -690,6 +709,63 @@ const showRefreshHint = ref({
     dataSource: false,
     statusBarLyrics: false,
 });
+
+const audioOutputDeviceOptions = ref([]);
+const audioOutputDevicesLoading = ref(false);
+
+const updateAudioOutputDeviceDisplayText = async (deviceId) => {
+    if (!deviceId || deviceId === 'default') {
+        selectedSettings.value.audioOutputDevice = { displayText: '默认', value: 'default' };
+        return;
+    }
+
+    let displayText = `已选择设备 (${deviceId.slice(0, 8)}...)`;
+    try {
+        if (navigator?.mediaDevices?.enumerateDevices) {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const matched = devices.find(d => d.kind === 'audiooutput' && d.deviceId === deviceId);
+            if (matched?.label) displayText = matched.label;
+        }
+    } catch {
+        // 忽略枚举失败
+    }
+
+    selectedSettings.value.audioOutputDevice = { displayText, value: deviceId };
+};
+
+const loadAudioOutputDevices = async () => {
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices?.enumerateDevices) {
+        audioOutputDeviceOptions.value = [];
+        return;
+    }
+
+    audioOutputDevicesLoading.value = true;
+
+    try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const outputs = devices.filter(d => d.kind === 'audiooutput');
+
+        const options = [{ displayText: '默认', value: 'default' }];
+        let unnamedIndex = 1;
+
+        for (const output of outputs) {
+            if (!output.deviceId) continue;
+            const displayText = output.label || `输出设备 ${unnamedIndex++}`;
+            options.push({ displayText, value: output.deviceId });
+        }
+
+        const seen = new Set();
+        audioOutputDeviceOptions.value = options.filter(opt => {
+            if (seen.has(opt.value)) return false;
+            seen.add(opt.value);
+            return true;
+        });
+    } catch {
+        audioOutputDeviceOptions.value = [{ displayText: '默认', value: 'default' }];
+    } finally {
+        audioOutputDevicesLoading.value = false;
+    }
+};
 
 const openSelection = (type, helpLink) => {
     isSelectionOpen.value = true;
@@ -711,6 +787,10 @@ const openSelection = (type, helpLink) => {
     
     if (type === 'proxy') {
         proxyForm.url = selectedSettings.value.proxyUrl?.value || '';
+    }
+
+    if (type === 'audioOutputDevice') {
+        void loadAudioOutputDevices();
     }
 };
 
@@ -791,6 +871,11 @@ const selectOption = async (option) => {
             window.dispatchEvent(new CustomEvent('audio-output-device-watch-change', {
                 detail: { enabled: option.value === 'on' }
             }));
+        },
+        'audioOutputDevice': async () => {
+            window.dispatchEvent(new CustomEvent('audio-output-device-change', {
+                detail: { deviceId: option.value }
+            }));
         }
     };
     await actions[selectionType.value]?.();
@@ -839,6 +924,7 @@ onMounted(() => {
     if (savedSettings) {
         for (const key in savedSettings) {
             if (key === 'shortcuts') continue;
+            if (key === 'audioOutputDevice') continue;
             if (key === 'proxyUrl') {
                 const value = savedSettings[key];
                 selectedSettings.value[key] = {
@@ -876,6 +962,10 @@ onMounted(() => {
     if(isElectron()){
         appVersion.value = localStorage.getItem('version');
         platform.value = window.electron.platform;
+    }
+
+    if (savedSettings?.audioOutputDevice !== undefined) {
+        void updateAudioOutputDeviceDisplayText(savedSettings.audioOutputDevice);
     }
 });
 

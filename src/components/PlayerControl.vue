@@ -930,6 +930,7 @@ const playbackSpeeds = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
 // 监听音频输出设备变化（例如插拔耳机/切换声卡），变化时暂停播放
 let cleanupAudioOutputDeviceWatcher = null;
 let lastAudioOutputDeviceSignature = null;
+let audioOutputDeviceChangeHandler = null;
 
 const setupAudioOutputDeviceWatcher = () => {
     if (cleanupAudioOutputDeviceWatcher) return;
@@ -986,6 +987,24 @@ const setAudioOutputDeviceWatcherEnabled = (enabled) => {
 
 let audioOutputDeviceWatchChangeHandler = null;
 
+const applyAudioOutputDevice = async (deviceId) => {
+    if (typeof audio?.setSinkId !== 'function') {
+        console.warn('[PlayerControl] 当前环境不支持切换音频输出设备（setSinkId不可用）');
+        return false;
+    }
+
+    const sinkId = deviceId || 'default';
+    try {
+        await audio.setSinkId(sinkId);
+        console.log('[PlayerControl] 已切换音频输出设备:', sinkId);
+        return true;
+    } catch (error) {
+        console.warn('[PlayerControl] 切换音频输出设备失败:', error);
+        window.$modal.alert('切换音频输出设备失败,请刷新页面后重试');
+        return false;
+    }
+};
+
 // 切换速度菜单
 const toggleSpeedMenu = () => {
     showSpeedMenu.value = !showSpeedMenu.value;
@@ -1025,12 +1044,19 @@ onMounted(() => {
 
     const savedSettings = JSON.parse(localStorage.getItem('settings') || '{}');
     setAudioOutputDeviceWatcherEnabled(savedSettings.pauseOnAudioOutputChange === 'on');
+    void applyAudioOutputDevice(savedSettings.audioOutputDevice);
 
     audioOutputDeviceWatchChangeHandler = (event) => {
         const enabled = !!event?.detail?.enabled;
         setAudioOutputDeviceWatcherEnabled(enabled);
     };
     window.addEventListener('audio-output-device-watch-change', audioOutputDeviceWatchChangeHandler);
+
+    audioOutputDeviceChangeHandler = (event) => {
+        const deviceId = event?.detail?.deviceId || 'default';
+        void applyAudioOutputDevice(deviceId);
+    };
+    window.addEventListener('audio-output-device-change', audioOutputDeviceChangeHandler);
 
     // 监听响度规格化开关变更
     const handleLoudnessChange = (event) => {
@@ -1171,6 +1197,10 @@ onUnmounted(() => {
     if (audioOutputDeviceWatchChangeHandler) {
         window.removeEventListener('audio-output-device-watch-change', audioOutputDeviceWatchChangeHandler);
         audioOutputDeviceWatchChangeHandler = null;
+    }
+    if (audioOutputDeviceChangeHandler) {
+        window.removeEventListener('audio-output-device-change', audioOutputDeviceChangeHandler);
+        audioOutputDeviceChangeHandler = null;
     }
 
     cleanupAudioOutputDeviceWatcher?.();
