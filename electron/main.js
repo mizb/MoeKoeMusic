@@ -290,6 +290,7 @@ ipcMain.on('set-tray-title', (event, title) => {
     mainWindow.setTitle(title);
 })
 
+
 ipcMain.handle('open-mv-window', (e, url) => {
     const mvWindow = createMvWindow();
     mvWindow.loadURL(url).then(() => {
