@@ -181,7 +181,7 @@ import { useI18n } from 'vue-i18n';
 import PlaylistSelectModal from './PlaylistSelectModal.vue';
 import QueueList from './QueueList.vue';
 import { useRouter } from 'vue-router';
-import { getCover, share } from '../utils/utils';
+import { getCover, getAudioOutputDeviceSignature, share } from '../utils/utils';
 
 // 从统一入口导入所有模块
 import {
@@ -915,9 +915,76 @@ const toggleMute = () => {
     console.log('[PlayerControl] 切换静音:', isMuted.value, '音量:', volume.value, '实际audio.volume:', audio.volume);
 };
 
+const pausePlayback = (reason) => {
+    clearAutoSwitchTimer();
+    if (!audio.paused) audio.pause();
+    playing.value = false;
+    mediaSession.clearPositionState?.();
+    if (reason) console.log('[PlayerControl] 暂停播放:', reason);
+};
+
 const showSpeedMenu = ref(false);
 const currentSpeed = ref(1.0);
 const playbackSpeeds = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
+
+// 监听音频输出设备变化（例如插拔耳机/切换声卡），变化时暂停播放
+let cleanupAudioOutputDeviceWatcher = null;
+let lastAudioOutputDeviceSignature = null;
+
+const setupAudioOutputDeviceWatcher = () => {
+    if (cleanupAudioOutputDeviceWatcher) return;
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices) return;
+
+    void getAudioOutputDeviceSignature().then(signature => {
+        lastAudioOutputDeviceSignature = signature;
+    }).catch(() => {
+        lastAudioOutputDeviceSignature = null;
+    });
+
+    const handler = throttle(() => {
+        void (async () => {
+            try {
+                const signature = await getAudioOutputDeviceSignature();
+                if (signature === null) return;
+                if (lastAudioOutputDeviceSignature === null) {
+                    lastAudioOutputDeviceSignature = signature;
+                    return;
+                }
+                if (signature !== lastAudioOutputDeviceSignature) {
+                    lastAudioOutputDeviceSignature = signature;
+                    if (!audio.paused) pausePlayback('检测到音频输出设备变化');
+                }
+            } catch (error) {
+                console.warn('[PlayerControl] 获取音频输出设备信息失败:', error);
+            }
+        })();
+    }, 800);
+
+    if (navigator.mediaDevices.addEventListener) {
+        navigator.mediaDevices.addEventListener('devicechange', handler);
+        cleanupAudioOutputDeviceWatcher = () => {
+            navigator.mediaDevices.removeEventListener('devicechange', handler);
+        };
+    } else if ('ondevicechange' in navigator.mediaDevices) {
+        const previous = navigator.mediaDevices.ondevicechange;
+        navigator.mediaDevices.ondevicechange = handler;
+        cleanupAudioOutputDeviceWatcher = () => {
+            navigator.mediaDevices.ondevicechange = previous;
+        };
+    }
+};
+
+const setAudioOutputDeviceWatcherEnabled = (enabled) => {
+    if (enabled) {
+        setupAudioOutputDeviceWatcher();
+        return;
+    }
+    cleanupAudioOutputDeviceWatcher?.();
+    cleanupAudioOutputDeviceWatcher = null;
+    lastAudioOutputDeviceSignature = null;
+};
+
+let audioOutputDeviceWatchChangeHandler = null;
 
 // 切换速度菜单
 const toggleSpeedMenu = () => {
@@ -955,6 +1022,15 @@ onMounted(() => {
 
     // 初始化音频设置
     audioController.initAudio();
+
+    const savedSettings = JSON.parse(localStorage.getItem('settings') || '{}');
+    setAudioOutputDeviceWatcherEnabled(savedSettings.pauseOnAudioOutputChange === 'on');
+
+    audioOutputDeviceWatchChangeHandler = (event) => {
+        const enabled = !!event?.detail?.enabled;
+        setAudioOutputDeviceWatcherEnabled(enabled);
+    };
+    window.addEventListener('audio-output-device-watch-change', audioOutputDeviceWatchChangeHandler);
 
     // 监听响度规格化开关变更
     const handleLoudnessChange = (event) => {
@@ -1092,6 +1168,14 @@ onUnmounted(() => {
     // 清除自动切换定时器
     clearAutoSwitchTimer();
 
+    if (audioOutputDeviceWatchChangeHandler) {
+        window.removeEventListener('audio-output-device-watch-change', audioOutputDeviceWatchChangeHandler);
+        audioOutputDeviceWatchChangeHandler = null;
+    }
+
+    cleanupAudioOutputDeviceWatcher?.();
+    cleanupAudioOutputDeviceWatcher = null;
+
     // 移除响度规格化事件监听
     window.removeEventListener('loudness-normalization-change', () => {});
 
@@ -1123,9 +1207,7 @@ onUnmounted(() => {
 defineExpose({
     playing,
     pause: () => {
-        clearAutoSwitchTimer();
-        if (!audio.paused) audio.pause();
-        playing.value = false;
+        pausePlayback();
     },
     addSongToQueue: async (hash, name, img, author) => {
         clearAutoSwitchTimer();

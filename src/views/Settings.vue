@@ -178,6 +178,7 @@ import { ref, onMounted, getCurrentInstance, onUnmounted, computed, reactive } f
 import { useI18n } from 'vue-i18n';
 import { MoeAuthStore } from '../stores/store';
 import ExtensionManager from '@/components/ExtensionManager.vue';
+import { requestMicrophonePermission } from '../utils/utils';
 
 const MoeAuth = MoeAuthStore();
 const { t } = useI18n();
@@ -217,6 +218,7 @@ const selectedSettings = ref({
     proxyUrl: { displayText: '', value: '' },
     dataSource: { displayText: t('gai-nian-ban-xuan-xiang'), value: 'concept' },
     loudnessNormalization: { displayText: t('guan-bi'), value: 'off' },
+    pauseOnAudioOutputChange: { displayText: t('guan-bi'), value: 'off' },
 });
 
 // 设置分区配置
@@ -266,6 +268,11 @@ const settingSections = computed(() => [
                 icon: '🎚️ ',
                 showRefreshHint: true,
                 refreshHintText: t('shua-xin-hou-sheng-xiao')
+            },
+            {
+                key: 'pauseOnAudioOutputChange',
+                label: '输出设备变化自动暂停',
+                icon: '🎧 '
             },
             {
                 key: 'greetings',
@@ -418,6 +425,7 @@ const getItemIcon = (key) => {
         'font': 'fas fa-font',
         'quality': 'fas fa-headphones',
         'loudnessNormalization': 'fas fa-sliders-h',
+        'pauseOnAudioOutputChange': 'fas fa-exchange-alt',
         'greetings': 'fas fa-comment',
         'lyricsBackground': 'fas fa-image',
         'lyricsFontSize': 'fas fa-text-height',
@@ -656,6 +664,13 @@ const selectionTypeMap = {
             { displayText: t('guan-bi'), value: 'off' }
         ]
     },
+    pauseOnAudioOutputChange: {
+        title: '输出设备变化自动暂停',
+        options: [
+            { displayText: t('da-kai'), value: 'on' },
+            { displayText: t('guan-bi'), value: 'off' }
+        ]
+    },
 
 };
 
@@ -709,7 +724,7 @@ const openHelpLink = () => {
     }
 };
 
-const selectOption = (option) => {
+const selectOption = async (option) => {
     const electronFeatures = ['desktopLyrics', 'statusBarLyrics', 'gpuAcceleration', 'minimizeToTray', 'highDpi', 'nativeTitleBar', 'touchBar', 'autoStart', 'startMinimized', 'preventAppSuspension', 'networkMode', 'poxySettings', 'apiMode', 'dataSource', 'statusBarLyrics'];
     if (!isElectron() && electronFeatures.includes(selectionType.value)) {
         window.$modal.alert(t('fei-ke-hu-duan-huan-jing-wu-fa-qi-yong'));
@@ -756,9 +771,29 @@ const selectOption = (option) => {
             window.dispatchEvent(new CustomEvent('loudness-normalization-change', {
                 detail: { enabled: option.value === 'on' }
             }));
+        },
+        'pauseOnAudioOutputChange': async () => {
+            if (option.value === 'on') {
+                const granted = await requestMicrophonePermission();
+                if (!granted) {
+                    selectedSettings.value.pauseOnAudioOutputChange = {
+                        displayText: t('guan-bi'),
+                        value: 'off'
+                    };
+                    window.dispatchEvent(new CustomEvent('audio-output-device-watch-change', {
+                        detail: { enabled: false }
+                    }));
+                    window.$modal.alert('音频权限申请失败，无法启用该功能');
+                    return;
+                }
+            }
+
+            window.dispatchEvent(new CustomEvent('audio-output-device-watch-change', {
+                detail: { enabled: option.value === 'on' }
+            }));
         }
     };
-    actions[selectionType.value]?.();
+    await actions[selectionType.value]?.();
     saveSettings();
     if(!['apiMode','font','fontUrl', 'proxy'].includes(selectionType.value)) closeSelection();
     const refreshHintTypes = ['nativeTitleBar','lyricsBackground', 'lyricsFontSize', 'gpuAcceleration', 'highDpi', 'apiMode', 'touchBar', 'preventAppSuspension', 'networkMode', 'font', 'proxy', 'dataSource', 'loudnessNormalization', 'statusBarLyrics'];
@@ -767,20 +802,20 @@ const selectOption = (option) => {
     }
 };
 
-const updateFontSetting = (key) => {
+const updateFontSetting = async (key) => {
     const prevType = selectionType.value;
     const value = key === 'font' ? (fontFamilyInput.value || '') : (fontUrlInput.value || '');
     const displayText = key === 'font' ? (value || t('mo-ren-zi-ti')) : (value || t('mo-ren-zi-ti'));
     selectionType.value = key;
-    selectOption({ displayText, value });
+    await selectOption({ displayText, value });
     selectionType.value = prevType;
 };
 
-const handleFontFocusOut = (e) => {
+const handleFontFocusOut = async (e) => {
     const container = e.currentTarget;
     if (container && e.relatedTarget && container.contains(e.relatedTarget)) return;
-    updateFontSetting('fontUrl');
-    updateFontSetting('font');
+    await updateFontSetting('fontUrl');
+    await updateFontSetting('font');
 };
 
 const isElectron = () => {
