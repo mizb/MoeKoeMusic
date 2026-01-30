@@ -1,10 +1,11 @@
 // src/services/request.js
 import axios from 'axios';
 import { MoeAuthStore } from '../stores/store';
+import { getApiBaseUrl } from './apiBaseUrl';
 
 // 创建一个 axios 实例
 const httpClient = axios.create({
-    baseURL: import.meta.env.VITE_APP_API_URL || 'http://127.0.0.1:6521',
+    baseURL: getApiBaseUrl(),
     timeout: 10000,
     headers: {
         'Content-Type': 'application/json',

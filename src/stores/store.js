@@ -1,9 +1,10 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
+import { getApiBaseUrl } from '../utils/apiBaseUrl';
 
 // 用于设备注册的独立 axios 实例（不带拦截器，避免循环依赖）
 const registerDeviceApi = axios.create({
-    baseURL: import.meta.env.VITE_APP_API_URL || 'http://127.0.0.1:6521',
+    baseURL: getApiBaseUrl(),
     timeout: 10000,
 });
 
