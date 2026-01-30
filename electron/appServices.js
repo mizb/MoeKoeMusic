@@ -258,19 +258,6 @@ export function getTray() {
 // 创建托盘图标及菜单
 export function createTray(mainWindow, title = '') {
     if (tray && title) {
-        // macOS 特殊处理：如果状态栏歌词开启，不设置标题（避免覆盖歌词图片）
-        if (process.platform === 'darwin') {
-            try {
-                if (statusBarLyricsService && !statusBarLyricsService.isStatusBarLyricsEnabled()) {
-                    tray.setTitle(title);
-                }
-            } catch (e) {
-                // 如果服务未初始化或出错，继续正常设置
-                console.error('[AppServices] Error checking status bar lyrics:', e);
-                tray.setTitle(title);
-            }
-        }
-
         tray.setToolTip(title);
         return tray;
     }

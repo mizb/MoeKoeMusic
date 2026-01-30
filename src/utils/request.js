@@ -18,7 +18,7 @@ httpClient.interceptors.request.use(
         const MoeAuth = MoeAuthStore();
         const token = MoeAuth.UserInfo?.token;
         const userid = MoeAuth.UserInfo?.userid;
-        const dfid = MoeAuth.UserInfo?.dfid;
+        const dfid = MoeAuth.Device?.dfid;
 
         const authParts = [];
         if (token) authParts.push(`token=${encodeURIComponent(token)}`);

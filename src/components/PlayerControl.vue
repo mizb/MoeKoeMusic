@@ -270,7 +270,7 @@ const updateCurrentTime = throttle(() => {
             highlightCurrentChar(audio.currentTime, !lyricsFlag.value);
         }
 
-        // 只在有歌曲且正在播放时才发送 IPC（修复：首次安装时 statusBarLyrics 默认开启）
+        // 只在有歌曲且正在播放时才发送 IPC
         if (isElectron() && audio.src && playing.value && (desktopLyricsEnabled || statusBarLyricsEnabled)) {
             const currentLine = hasLyricsData ? getCurrentLineText(audio.currentTime) : '';
             
