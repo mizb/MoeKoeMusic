@@ -2,7 +2,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const express = require('express');
 const decode = require('safe-decode-uri-component');
-const { cookieToJson } = require('./util/util');
+const { cookieToJson, randomString, getGuid, calculateMid } = require('./util/util');
+const { cryptoMd5 } = require('./util/crypto');
 const { createRequest } = require('./util/request');
 const dotenv = require('dotenv');
 const cache = require('./util/apicache').middleware;
@@ -17,13 +18,16 @@ const cache = require('./util/apicache').middleware;
 
 /**
  * @typedef {{
-*  server?: import('http').Server,
-* }} ExpressExtension
-*/
+ *  server?: import('http').Server,
+ * }} ExpressExtension
+ */
+
+const guid = cryptoMd5(getGuid());
+const serverDev = randomString(10).toUpperCase();
 
 const envPath = path.join(process.cwd(), '.env');
 if (fs.existsSync(envPath)) {
-  dotenv.config({path: envPath, quiet: true});
+  dotenv.config({ path: envPath, quiet: true });
 }
 
 /**
@@ -92,13 +96,44 @@ async function consturctServer(moduleDefs) {
 
   // 将当前平台写入Cookie 以方便查看
   app.use((req, res, next) => {
-    const cookies = (req.headers.cookie || '').split(/;\s+|(?<!\s)\s+$/g);
-    if (!cookies.includes('KUGOU_API_PLATFORM')) {
+    const cookieArr = (req.headers.cookie || '').split(/;\s+|(?<!\s)\s+$/g);
+    let cookies = {};
+    cookieArr.forEach((i) => {
+      let arr = i.split('=');
+      cookies[arr[0]] = arr[1];
+    });
+
+    if (!cookies.hasOwnProperty('KUGOU_API_PLATFORM')) {
       if (req.protocol === 'https') {
         res.append('Set-Cookie', `KUGOU_API_PLATFORM=${process.env.platform}; PATH=/; SameSite=None; Secure`);
       } else {
-        res.append('Set-Cookie', `KUGOU_API_PLATFORM=${process.env.platform}; PATH=/; SameSite=None; Secure`);
+        res.append('Set-Cookie', `KUGOU_API_PLATFORM=${process.env.platform}; PATH=/`);
       }
+    }
+    const mid = calculateMid(process.env.KUGOU_API_GUID ?? guid);
+
+    if (req.protocol === 'https') {
+      // 固定mid
+      if (!cookies.hasOwnProperty('KUGOU_API_MID')) res.append('Set-Cookie', `KUGOU_API_MID=${mid}; PATH=/; SameSite=None; Secure`);
+      // 固定guid
+      if (!cookies.hasOwnProperty('KUGOU_API_GUID'))
+        res.append('Set-Cookie', `KUGOU_API_GUID=${process.env.KUGOU_API_GUID ?? guid}; PATH=/; SameSite=None; Secure`);
+      // 固定设备名称
+      if (!cookies.hasOwnProperty('KUGOU_API_DEV'))
+        res.append('Set-Cookie', `KUGOU_API_DEV=${(process.env.KUGOU_API_DEV ?? serverDev).toUpperCase()}; PATH=/; SameSite=None; Secure`);
+      // 固定 MAC 地址
+      if (!cookies.hasOwnProperty('KUGOU_API_MAC'))
+        res.append('Set-Cookie', `KUGOU_API_MAC=${(process.env.KUGOU_API_MAC ?? '02:00:00:00:00:00').toUpperCase()}; PATH=/; SameSite=None; Secure`);
+    } else {
+      if (!cookies.hasOwnProperty('KUGOU_API_MID')) res.append('Set-Cookie', `KUGOU_API_MID=${mid}; PATH=/`);
+
+      if (!cookies.hasOwnProperty('KUGOU_API_GUID')) res.append('Set-Cookie', `KUGOU_API_GUID=${process.env.KUGOU_API_GUID ?? guid}; PATH=/`);
+
+      if (!cookies.hasOwnProperty('KUGOU_API_DEV'))
+        res.append('Set-Cookie', `KUGOU_API_DEV=${(process.env.KUGOU_API_DEV ?? serverDev).toUpperCase()}; PATH=/`);
+
+      if (!cookies.hasOwnProperty('KUGOU_API_MAC'))
+        res.append('Set-Cookie', `KUGOU_API_MAC=${(process.env.KUGOU_API_MAC ?? '02:00:00:00:00:00').toUpperCase()}; PATH=/`);
     }
 
     next();
@@ -133,12 +168,14 @@ async function consturctServer(moduleDefs) {
       });
 
       const { cookie, ...params } = req.query;
-      const query = Object.assign({}, { cookie: Object.assign(req.cookies, cookie) }, params, { body: req.body });
+
+      const query = Object.assign({}, { cookie: Object.assign({}, req.cookies, cookie) }, params, { body: req.body });
+
       const authHeader = req.headers['authorization'];
       if (authHeader) {
         query.cookie = {
           ...query.cookie,
-          ...cookieToJson(authHeader)
+          ...cookieToJson(authHeader),
         };
       }
       try {

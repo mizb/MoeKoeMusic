@@ -350,7 +350,11 @@ const signIn = async () => {
 }
 const getVip = async () => {
     try{
-        const vipResponse = await get('/youth/day/vip');
+        const today = new Date();
+        const todayKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+        const vipResponse = await get('/youth/day/vip',{
+            receive_day: todayKey
+        });
         const result = await window.$modal.confirm('是否继续升级至概念版VIP,享受更高音质?');
         if(result){
             try{

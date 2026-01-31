@@ -87,7 +87,9 @@ export function useHelpers(t) {
     }
 
     try {
-      await get('/youth/day/vip');
+      await get('/youth/day/vip',{
+        receive_day: todayKey
+      });
       await new Promise(resolve => setTimeout(resolve, 500));
       await get('/youth/day/vip/upgrade');
     } catch (error) {
