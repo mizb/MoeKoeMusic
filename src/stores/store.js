@@ -12,9 +12,7 @@ export const MoeAuthStore = defineStore('MoeData', {
     state: () => ({
         UserInfo: null, // 用户信息
         Config: null, // 配置信息
-        Device: {
-            dfid: null,
-        }, // 设备信息
+        Device: null, // 设备信息
     }),
     actions: {
         fetchConfig(key) {
@@ -29,14 +27,14 @@ export const MoeAuthStore = defineStore('MoeData', {
         clearData() {
             this.UserInfo = null; // 清除用户信息
         },
-        async initDfid() {
-            if (this.Device?.dfid) return this.Device.dfid;
+        async initDevice() {
+            if (this.Device) return this.Device;
             try {
-                const response = await registerDeviceApi.get('/register/dev');
-                const dfid = response?.data?.data?.dfid;
-                if (dfid) {
-                    this.Device.dfid = dfid;
-                    return dfid;
+                const response = await registerDeviceApi.get('/register/dev?register');
+                const device = response?.data?.data;
+                if (device) {
+                    this.Device = device;
+                    return device;
                 }
             } catch (error) {
                 console.error('Failed to register device:', error);

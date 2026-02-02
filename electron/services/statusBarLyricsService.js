@@ -26,13 +26,12 @@ class StatusBarLyricsService {
         }
     }
 
-    // 判断状态栏歌词是否开启 (macOS 默认开启)
+    // 判断状态栏歌词是否开启
     isStatusBarLyricsEnabled() {
         if (process.platform !== 'darwin') return false;
 
         const settings = this.store.get('settings') || {};
-        // 首次安装时 (undefined) 或明确设为 'on' 时开启
-        return settings.statusBarLyrics === undefined || settings.statusBarLyrics === 'on';
+        return settings.statusBarLyrics === 'on';
     }
 
     registerListeners() {

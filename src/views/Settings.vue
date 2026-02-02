@@ -223,7 +223,7 @@ const selectedSettings = ref({
     quality: { displayText: t('pu-tong-yin-zhi'), value: 'normal' },
     lyricsBackground: { displayText: t('da-kai'), value: 'on' },
     desktopLyrics: { displayText: t('guan-bi'), value: 'off' },
-    statusBarLyrics: { displayText: t('da-kai'), value: 'on' },
+    statusBarLyrics: { displayText: t('guan-bi'), value: 'off' },
     lyricsFontSize: { displayText: t('zhong'), value: '24px' },
     lyricsTranslation: { displayText: t('da-kai'), value: 'on' },
     lyricsAlign: { displayText: t('ju-zhong'), value: 'center' },
@@ -955,14 +955,6 @@ const closeSelection = () => {
 
 onMounted(() => {
     const savedSettings = JSON.parse(localStorage.getItem('settings'));
-    
-    // 根据平台设置状态栏歌词的默认值：macOS 默认开启，Windows 默认关闭
-    if (isElectron() && !savedSettings?.statusBarLyrics) {
-        const isMac = window.electron.platform === 'darwin';
-        selectedSettings.value.statusBarLyrics = isMac 
-            ? { displayText: t('da-kai'), value: 'on' }
-            : { displayText: t('guan-bi'), value: 'off' };
-    }
     
     if (savedSettings) {
         if (savedSettings.apiBaseUrlMode === undefined) {

@@ -11,7 +11,6 @@ import { checkForUpdates } from './updater.js';
 import { Notification } from 'electron';
 import extensionManager from './extensionManager.js';
 import { t } from './i18n.js';
-import statusBarLyricsService from './services/statusBarLyricsService.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const store = new Store();
 const { TouchBarLabel, TouchBarButton, TouchBarGroup, TouchBarSpacer } = TouchBar;

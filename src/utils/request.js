@@ -19,12 +19,22 @@ httpClient.interceptors.request.use(
         const MoeAuth = MoeAuthStore();
         const token = MoeAuth.UserInfo?.token;
         const userid = MoeAuth.UserInfo?.userid;
+        const t1 = MoeAuth.UserInfo?.t1;
         const dfid = MoeAuth.Device?.dfid;
+        const mid = MoeAuth.Device?.mid;
+        const guid = MoeAuth.Device?.guid;
+        const serverDev = MoeAuth.Device?.serverDev;
+        const mac = MoeAuth.Device?.mac;
 
         const authParts = [];
-        if (token) authParts.push(`token=${encodeURIComponent(token)}`);
-        if (userid) authParts.push(`userid=${encodeURIComponent(userid)}`);
-        if (dfid) authParts.push(`dfid=${encodeURIComponent(dfid)}`);
+        if (token) authParts.push(`token=${(token)}`);
+        if (userid) authParts.push(`userid=${(userid)}`);
+        // if (dfid) authParts.push(`dfid=${(dfid)}`);
+        if (t1) authParts.push(`t1=${(t1)}`);
+        if (mid) authParts.push(`KUGOU_API_MID=${(mid)}`);
+        if (guid) authParts.push(`KUGOU_API_GUID=${(guid)}`);
+        if (serverDev) authParts.push(`KUGOU_API_DEV=${(serverDev)}`);
+        if (mac) authParts.push(`KUGOU_API_MAC=${(mac)}`);
 
         if (authParts.length > 0) {
             config.headers = {

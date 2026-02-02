@@ -225,15 +225,10 @@ export function useStatusBarLyrics() {
         }
     };
 
-    // 初始化状态栏歌词（封装初始化和IPC监听）
+    // 初始化状态栏歌词
     const initStatusBar = (logoSrc, settings) => {
         if (!window.electron?.ipcRenderer) return null;
-
-        // 判断是否需要开启 (macOS 默认开启)
-        const isMac = window.electron.platform === 'darwin';
-        const shouldEnable = settings.statusBarLyrics === 'on' ||
-            (settings.statusBarLyrics === undefined && isMac);
-
+        const shouldEnable = settings.statusBarLyrics === 'on';
         if (!shouldEnable) return null;
 
         // 初始化 Logo

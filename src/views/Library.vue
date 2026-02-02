@@ -350,8 +350,7 @@ const signIn = async () => {
 }
 const getVip = async () => {
     try{
-        const today = new Date();
-        const todayKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+        const todayKey = new Date().toISOString().split('T')[0];
         const vipResponse = await get('/youth/day/vip',{
             receive_day: todayKey
         });

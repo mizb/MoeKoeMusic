@@ -257,10 +257,7 @@ const updateCurrentTime = throttle(() => {
     const savedConfig = JSON.parse(localStorage.getItem('settings') || '{}');
     const hasLyricsData = Array.isArray(lyricsData.value) && lyricsData.value.length > 0;
     
-    // 首次安装时 statusBarLyrics 是 undefined，根据平台决定默认值：macOS 默认开启，其他平台默认关闭
-    const isMac = isElectron() && window.electron.platform === 'darwin';
-    const statusBarLyricsEnabled = savedConfig?.statusBarLyrics === 'on' || 
-        (savedConfig?.statusBarLyrics === undefined && isMac);
+    const statusBarLyricsEnabled = savedConfig?.statusBarLyrics === 'on';
     const desktopLyricsEnabled = savedConfig?.desktopLyrics === 'on';
 
     if (audio) {
@@ -1114,11 +1111,6 @@ onMounted(() => {
         }
     }
 
-    // 如果有当前歌曲，获取歌词
-    if (currentSong.value?.hash && !currentSong.value.isLocal) {
-        getCurrentLyrics();
-    }
-
     // 初始化播放模式
     playbackMode.initPlaybackMode();
 
@@ -1196,6 +1188,7 @@ onMounted(() => {
     });
 
     audio.addEventListener('error', (e) => {
+        console.log('[PlayerControl] 音频错误代码:', audio.error?.code);
         console.error('[PlayerControl] 音频错误:', e);
         if(audio.error?.code == 4){
             addSongToQueue(currentSong.value.hash, currentSong.value.name, currentSong.value.img, currentSong.value.author);
