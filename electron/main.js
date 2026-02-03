@@ -5,14 +5,14 @@ import {
     playStartupSound, createLyricsWindow, setThumbarButtons,
     registerProtocolHandler, sendHashAfterLoad, getTray, createMvWindow
 } from './appServices.js';
-import { initializeExtensions, cleanupExtensions } from './extensions.js';
-import { setupAutoUpdater } from './updater.js';
-import apiService from './apiService.js';
+import { initializeExtensions, cleanupExtensions } from './extensions/extensions.js';
+import { setupAutoUpdater } from './services/updater.js';
+import apiService from './services/apiService.js';
 import statusBarLyricsService from './services/statusBarLyricsService.js';
 import Store from 'electron-store';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { t } from './i18n.js';
+import { t } from './language/i18n.js';
 
 let mainWindow = null;
 let blockerId = null;

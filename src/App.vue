@@ -3,8 +3,7 @@
         <TitleBar v-if="showTitleBar && !isLyricsRoute" />
         <RouterView />
         <Disclaimer v-if="!isLyricsRoute" />
-        <!-- 离屏 Canvas 用于生成顶部状态栏StatusBar图片 (逻辑宽 200pt * 2 = 400px, 高 22pt * 2 = 44px) -->
-        <canvas ref="statusBarCanvas" width="400" height="44" style="display: none;"></canvas>
+        <StatusBarLyrics ref="statusBarLyricsRef" />
     </div>
 </template>
 
@@ -13,15 +12,15 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 import Disclaimer from '@/components/Disclaimer.vue';
 import TitleBar from '@/components/TitleBar.vue';
+import StatusBarLyrics from '@/components/StatusBarLyrics.vue';
 import { MoeAuthStore } from '@/stores/store';
-import { useStatusBarLyrics } from '@/composables/useStatusBarLyrics';
 import logoImageSrc from '@/assets/images/tray/tray-icon@2x.png?url';
 
 const route = useRoute();
 const isLyricsRoute = computed(() => route.path === '/lyrics');
 
 // 状态栏歌词逻辑
-const { canvasRef: statusBarCanvas, initStatusBar, cleanupStatusBar } = useStatusBarLyrics();
+const statusBarLyricsRef = ref(null);
 let cleanupStatusBarIPC = null;
 
 // 动态控制 TitleBar 的显示
@@ -35,11 +34,11 @@ onMounted(async () => {
     await MoeAuth.initDevice();
 
     // 初始化状态栏歌词
-    cleanupStatusBarIPC = initStatusBar(logoImageSrc, settings);
+    cleanupStatusBarIPC = statusBarLyricsRef.value?.initStatusBar(logoImageSrc, settings);
 });
 
 onUnmounted(() => {
-    cleanupStatusBar();
+    statusBarLyricsRef.value?.cleanupStatusBar();
     cleanupStatusBarIPC?.();
 });
 </script>
