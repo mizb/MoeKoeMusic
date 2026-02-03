@@ -510,7 +510,7 @@ export function startApiServer() {
                 log.info(`API proxy enabled: ${proxyAddress}`);
             }
         }
-
+        Args.push('--port=6521');
         apiProcess = spawn(apiPath, Args, { windowsHide: true });
 
         apiProcess.stdout.on('data', (data) => {
