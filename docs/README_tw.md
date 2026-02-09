@@ -85,7 +85,7 @@
     2. ~~方式二：使用docker-compose一鍵安裝 （映像暫未上傳官方）~~
     
     ```
-    docker run -d --name MoeKoeMusic -p 8080:8080 iajue/moekoe-music:latest
+    docker run -d --name MoeKoeMusic -p 8080:8080 -p 6521:6521 -e PORT=6521 -e platform=lite iajue/moekoe-music:latest
     ```
 
     3. 方式三：寶塔容器編排
@@ -104,6 +104,9 @@
         build:
           context: .
           dockerfile: Dockerfile
+        environment:
+          - PORT=6521
+          - platform=lite
         ports: # 埠映射
           - "8080:8080"  # 前端服務
           - "6521:6521"  # 介面服務
@@ -111,7 +114,6 @@
     ```
     
     複製上面的內容，貼上到寶塔面板的容器編排裡面，編排名稱為MoeKoeMusic，點擊部署即可。
-
 ### 3. 一鍵部署
 [![使用 EdgeOne Pages 部署](https://cdnstatic.tencentcs.com/edgeone/pages/deploy.svg)](https://edgeone.ai/pages/new?template=https://github.com/iAJue/moekoemusic&install-command=npm%20install&output-directory=dist&root-directory=.%2F&build-command=npm%20run%20build&env=VITE_APP_API_URL)
 

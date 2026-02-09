@@ -85,7 +85,7 @@
   2. ~~방법 2: docker-compose를 사용한 원클릭 설치 (이미지 미업로드 중)~~
   
   ```
-  docker run -d --name MoeKoeMusic -p 8080:8080 iajue/moekoe-music:latest
+  docker run -d --name MoeKoeMusic -p 8080:8080 -p 6521:6521 -e PORT=6521 -e platform=lite iajue/moekoe-music:latest
   ```
 
   3. 방법 3: 바오타 컨테이너 오케스트레이션
@@ -104,6 +104,9 @@
     build:
       context: .
       dockerfile: Dockerfile
+    environment:
+      - PORT=6521
+      - platform=lite
     ports: # 포트 매핑
       - "8080:8080"  # 프론트엔드 서비스
       - "6521:6521"  # API 서비스
@@ -111,12 +114,10 @@
   ```
   
   위의 내용을 복사하여 바오타 패널의 컨테이너 오케스트레이션에 붙여넣고, 오케스트레이션 이름을 MoeKoeMusic으로 설정한 후 배포를 클릭하면 됩니다.
-
-
-### 3. 一键部署
+### 3. 원클릭 배포
 [![使用 EdgeOne Pages 部署](https://cdnstatic.tencentcs.com/edgeone/pages/deploy.svg)](https://edgeone.ai/pages/new?template=https://github.com/iAJue/moekoemusic&install-command=npm%20install&output-directory=dist&root-directory=.%2F&build-command=npm%20run%20build&env=VITE_APP_API_URL)
 
-需在环境变量(VITE_APP_API_URL)中填写自己的API地址
+환경 변수 VITE_APP_API_URL에 본인의 API 주소를 입력해야 합니다.
 
 ## ⚙️ 개발
 

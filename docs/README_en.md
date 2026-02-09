@@ -86,7 +86,7 @@ Visit the [Releases](https://github.com/iAJue/MoeKoeMusic/releases) page of this
   2. ~~Method 2: One-click installation using docker-compose (image not yet uploaded officially)~~
   
   ```
-  docker run -d --name MoeKoeMusic -p 8080:8080 iajue/moekoe-music:latest
+  docker run -d --name MoeKoeMusic -p 8080:8080 -p 6521:6521 -e PORT=6521 -e platform=lite iajue/moekoe-music:latest
   ```
 
   3. Method 3: Baota Container Orchestration
@@ -105,6 +105,9 @@ Visit the [Releases](https://github.com/iAJue/MoeKoeMusic/releases) page of this
     build:
       context: .
       dockerfile: Dockerfile
+    environment:
+      - PORT=6521
+      - platform=lite
     ports: # Port mapping
       - "8080:8080"  # Frontend service
       - "6521:6521"  # API service
@@ -112,11 +115,10 @@ Visit the [Releases](https://github.com/iAJue/MoeKoeMusic/releases) page of this
   ```
   
   Copy the content above and paste it into the container orchestration in the Baota panel, name the orchestration as MoeKoeMusic, and click deploy.
-
-### 3. 一键部署
+### 3. One-Click Deployment
 [![使用 EdgeOne Pages 部署](https://cdnstatic.tencentcs.com/edgeone/pages/deploy.svg)](https://edgeone.ai/pages/new?template=https://github.com/iAJue/moekoemusic&install-command=npm%20install&output-directory=dist&root-directory=.%2F&build-command=npm%20run%20build&env=VITE_APP_API_URL)
 
-需在环境变量(VITE_APP_API_URL)中填写自己的API地址
+You need to fill in your own API address in the environment variable VITE_APP_API_URL.
 
 ##  ⚙️  development
 
